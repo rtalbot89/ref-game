@@ -3,9 +3,9 @@
 // Rate at which entities are added to the game
 // Higher values means more frequent updates
 // 0.03 seems fast 0.005 is slow enough for development
-var addRate = 0.007;
+var addRate = 0.01;
 // Speed in pixels per second
-var playerSpeed = 200;
+var playerSpeed = 500;
 var studentSpeed = 60;
 var cartSpeed = 80;
 
@@ -46,11 +46,12 @@ var slotIds = games[Math.floor(Math.random() * games.length)];
 // Alternative images for randomisation
 var rightSprites = ['img/funky_student_sprite.png', 'img/blonde_student.png'];
 var leftSprites = ['img/music_student_sprite.png', 'img/afro_student.png'];
-var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
+//var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
+var cartSprites = ['img/yellow_cart_2.png'];
 
 // entity vertical levels
 //larger values are higher up
-var items = [80, 100, 120, 140, 160, 180, 200, 220];
+var items = [115, 185];
 //left to right
 var rightYChoices = [300, 340,380, 400, 420];
 //right to left
@@ -102,7 +103,9 @@ resources.load([
     'img/year.png',
     'img/title.png',
     'img/publisher.png',
-    'img/frowny.png'
+    'img/frowny.png',
+    'img/yellow_cart_2.png',
+    'img/chapter_2.png'
 
 ]);
 resources.onReady(init);
@@ -125,7 +128,8 @@ var startId = startPlayer();
 var player = {
     pos: [0, 0],
     id: startId,
-    sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
+    //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
+    sprite: new Sprite('img/chapter_2.png', [0, 0], [40, 40], 10, [0, 1])
 };
 
 var carts = [];
@@ -171,7 +175,7 @@ function update(dt) {
         cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
         carts.push({
             pos: [canvas.width, canvas.height - cartY(items)],
-            sprite: new Sprite(cSprite, [0, 0], [55, 19], 6, [0, 1])
+            sprite: new Sprite(cSprite, [0, 0], [120, 80], 6, [0, 1])
         });
 
         lSprite = leftSprites[Math.floor(Math.random() * leftSprites.length)];
@@ -188,15 +192,33 @@ function update(dt) {
     }
     checkCollisions(dt);
 };
-
+var hopTracker = 0;
+function hopper(tracker) {
+    //console.log(tracker);
+     if (tracker  === 0) {
+        return 40;
+    }
+    if (tracker % 20 === 0) {
+        return 40;
+    }
+    return 0;
+}
 function handleInput(dt) {
+    
     if (input.isDown('DOWN') || input.isDown('s')) {
         player.pos[1] += playerSpeed * dt;
     }
 
     if (input.isDown('UP') || input.isDown('w')) {
-        player.pos[1] -= playerSpeed * dt;
+       //player.pos[1] -= playerSpeed * dt;
+       //console.log('up');
+     
+       //hopper(hopTracker);
+       // player.pos[1] -= 0;
+       player.pos[1] -= hopper(hopTracker);
+       hopTracker++;
     }
+   
 
     if (input.isDown('LEFT') || input.isDown('a')) {
         player.pos[0] -= playerSpeed * dt;
@@ -209,6 +231,7 @@ function handleInput(dt) {
 
 function updateEntities(dt) {
     // Update the player sprite animation
+    
     player.sprite.update(dt);
 
     // Update all the carts
@@ -321,7 +344,8 @@ function checkCollisions(dt) {
             scoreEl.innerHTML = currentScore(scoreTracker);
             updateScore(score, slots[i].slotId);
             player.id = startPlayer();
-            player.sprite.url = 'img/' + player.id + '.png';
+            //player.sprite.url = 'img/' + player.id + '.png';
+            player.sprite.url = 'img/chapter_2.png';
             player.pos = [canvas.width / 2, canvas.height - 10];
         }
     }
@@ -496,7 +520,8 @@ function reset() {
     slots = [];
     smileys = [];
     player.id = startPlayer();
-    player.sprite.url = 'img/' + player.id + '.png';
+    //player.sprite.url = 'img/' + player.id + '.png';
+    player.sprite.url = 'img/chapter_2.png';
     player.pos = [canvas.width / 2, canvas.height - 45];
     mySound = new sound("frogger.ogg");
     mySound.play();
