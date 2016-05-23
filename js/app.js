@@ -3,11 +3,11 @@
 // Rate at which entities are added to the game
 // Higher values means more frequent updates
 // 0.03 seems fast 0.005 is slow enough for development
-var addRate = 0.01;
+var addRate = 0.005;
 // Speed in pixels per second
 var playerSpeed = 500;
 var studentSpeed = 60;
-var cartSpeed = 80;
+var cartSpeed = 120;
 
 var mySound;
 
@@ -51,7 +51,7 @@ var cartSprites = ['img/yellow_cart_2.png'];
 
 // entity vertical levels
 //larger values are higher up
-var items = [115, 185];
+var items = [115, 165];
 //left to right
 var rightYChoices = [300, 340,380, 400, 420];
 //right to left
@@ -105,7 +105,8 @@ resources.load([
     'img/publisher.png',
     'img/frowny.png',
     'img/yellow_cart_2.png',
-    'img/chapter_2.png'
+    'img/chapter_2.png',
+    'img/book_35.png'
 
 ]);
 resources.onReady(init);
@@ -129,7 +130,7 @@ var player = {
     pos: [0, 0],
     id: startId,
     //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
-    sprite: new Sprite('img/chapter_2.png', [0, 0], [40, 40], 10, [0, 1])
+    sprite: new Sprite('img/book_35.png', [0, 0], [30, 30], 10, [0, 1])
 };
 
 var carts = [];
@@ -170,14 +171,24 @@ function update(dt) {
     handleInput(dt);
     updateEntities(dt);
 
+   // var calcTime = 1 - Math.pow(.993, gameTime);
     var calcTime = 1 - Math.pow(.993, gameTime);
-    if (Math.random() < addRate) {
+    var rand = Math.random();
+   
+    if (rand < addRate) {
+       // console.log(rand);
+      
         cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
-        carts.push({
+      
+          
+   
+            carts.push({
             pos: [canvas.width, canvas.height - cartY(items)],
-            sprite: new Sprite(cSprite, [0, 0], [120, 80], 6, [0, 1])
-        });
-
+            sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
+            });
+         
+           
+      // }
         lSprite = leftSprites[Math.floor(Math.random() * leftSprites.length)];
         students.push({
             pos: [canvas.width, canvas.height - cartY(leftYChoices)],
@@ -196,17 +207,21 @@ var hopTracker = 0;
 function hopper(tracker) {
     //console.log(tracker);
      if (tracker  === 0) {
-        return 40;
+        return 35;
+       
     }
-    if (tracker % 20 === 0) {
-        return 40;
+    if (tracker === 20) {
+        hopTracker = 0;
+        return 35;
     }
     return 0;
 }
 function handleInput(dt) {
     
     if (input.isDown('DOWN') || input.isDown('s')) {
-        player.pos[1] += playerSpeed * dt;
+        //player.pos[1] += playerSpeed * dt;
+       player.pos[1] += hopper(hopTracker);
+       hopTracker++;
     }
 
     if (input.isDown('UP') || input.isDown('w')) {
@@ -221,11 +236,15 @@ function handleInput(dt) {
    
 
     if (input.isDown('LEFT') || input.isDown('a')) {
-        player.pos[0] -= playerSpeed * dt;
+        //player.pos[0] -= playerSpeed * dt;
+        player.pos[0] -= hopper(hopTracker);
+         hopTracker++;
     }
 
     if (input.isDown('RIGHT') || input.isDown('d')) {
-        player.pos[0] += playerSpeed * dt;
+        //player.pos[0] += playerSpeed * dt;
+        player.pos[0] += hopper(hopTracker);
+        hopTracker++;
     }
 }
 
@@ -284,6 +303,7 @@ function boxCollides(pos, size, pos2, size2) {
         pos2[0] + size2[0], pos2[1] + size2[1]);
 }
 
+
 function slotCollides(pos, size, pos2, size2, slotId, playerId) {
     // pos is position of this slot
     // size of this slot
@@ -327,8 +347,10 @@ function updateScore(score, id) {
     }
 }
 
+var originalPlayerPos = player.pos.slice(0);
 function checkCollisions(dt) {
     checkPlayerBounds();
+ 
 
     // Collision for slots
     for (var i = 0; i < slots.length; i++) {
@@ -345,21 +367,63 @@ function checkCollisions(dt) {
             updateScore(score, slots[i].slotId);
             player.id = startPlayer();
             //player.sprite.url = 'img/' + player.id + '.png';
-            player.sprite.url = 'img/chapter_2.png';
-            player.pos = [canvas.width / 2, canvas.height - 10];
+            player.sprite.url = 'img/book_35.png';
+            player.pos = [canvas.width / 2, canvas.height - 45];
         }
     }
 
+    // Only hitch a ride when landing on a cart
+       // because the key press has ended
+    var keyIsPressed = false;
+    var isOnFloor = true;
+    var cartArea = canvas.height - 50;
+    var onCart = false;
+    
+     //console.log(isOnFloor);
+     
+      if (
+            input.isDown('DOWN') || input.isDown('s') ||
+            input.isDown('UP') || input.isDown('w') ||
+            input.isDown('LEFT') || input.isDown('a') ||
+            input.isDown('RIGHT') || input.isDown('d')) {
+                //console.log('input');
+                keyIsPressed = true;
+            } else {
+                  //keyIsPressed = false;
+            }
+   
     // Run collision detection for all carts
+    // Cart collisions
     for (var i = 0; i < carts.length; i++) {
         var pos = carts[i].pos;
         var size = carts[i].sprite.size;
-
+       
+   
+       
+        //  player.pos = [canvas.width / 2, canvas.height - 10];
         // Hitch a ride on a cart by moving player at same speed
-        if (boxCollides(pos, size, player.pos, player.sprite.size)) {
+       // Re-using slot collides here. May be a better way
+        //if (keyIsPressed === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
+        if (keyIsPressed === false && slotCollides(pos, size, player.pos, player.sprite.size)) {
+            console.log('move this is true');
             player.pos[0] -= cartSpeed * dt;
-        }
+           // player.pos[0] = player.pos[0];
+           isOnFloor = false;
+            onCart = true;
+        } 
+        
+        if (keyIsPressed === false && !slotCollides(pos, size, player.pos, player.sprite.size)) {
+           
+            player.pos = [canvas.width / 2, canvas.height - 45];
+            onCart = false;
+           isOnFloor = false;
+            console.log(isOnFloor);
+           // onCart = false;
+        } 
+        
+     
     }
+   
 
     // Collision with students
     for (var i = 0; i < students.length; i++) {
@@ -395,6 +459,13 @@ function checkCollisions(dt) {
                 });
             gameOver();
         }
+    }
+    
+     if ( keyIsPressed === false && isOnFloor === true) {
+        //console.log('fell on floor');
+        // player.pos = [canvas.width / 2, canvas.height - 45];
+           player.pos = [canvas.width / 2, canvas.height - 45];
+           isOnFloor = false;
     }
 }
 
@@ -521,7 +592,7 @@ function reset() {
     smileys = [];
     player.id = startPlayer();
     //player.sprite.url = 'img/' + player.id + '.png';
-    player.sprite.url = 'img/chapter_2.png';
+    player.sprite.url = 'img/book_35.png';
     player.pos = [canvas.width / 2, canvas.height - 45];
     mySound = new sound("frogger.ogg");
     mySound.play();
