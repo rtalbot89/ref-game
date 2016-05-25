@@ -4,7 +4,7 @@
 // Rate at which entities are added to the game
 // Higher values means more frequent updates
 // 0.03 seems fast 0.005 is slow enough for development
-var addRate = 0.005;
+var addRate = 0.03;
 // Speed in pixels per second
 var playerSpeed = 500;
 var studentSpeed = 60;
@@ -25,8 +25,22 @@ var scoreEl = document.getElementById('score');
 // Height of 'home' slots
 var slotHeight = 40;
 var isGameOver = false;
-var hopLength = 65;
-// Zones. These are just heights
+var hopLength = 70;
+// entity vertical levels
+//larger values are higher up
+var items = [120, 190];
+//var items = [115];
+//left to right
+var rightYChoices = [300, 340, 380, 400, 420];
+//right to left
+var leftYChoices = [280, 320, 360, 340, 420];
+
+var canvasWidth = 512;
+var canvasHeight = 480;
+var homeHeight = 80;
+var homeBorder = 10;
+
+
 
 // games
 var games = [
@@ -64,7 +78,7 @@ var player = {
     pos: [0, 0],
     id: startId,
     //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
-    sprite: new Sprite('img/book_35.png', [0, 0], [30, 30], 10, [0, 1])
+    sprite: new Sprite('img/book_35.png', [0, 0], [30, 30], 3, [0, 1])
 };
 
 
@@ -86,9 +100,12 @@ var requestAnimFrame = (function () {
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
 
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
 document.body.appendChild(canvas);
+
+// Zones. These are just heights
+var homeZone = canvasHeight - homeHeight;
 
 
 // Alternative images for randomisation
@@ -97,14 +114,6 @@ var leftSprites = ['img/music_student_sprite.png', 'img/afro_student.png'];
 //var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
 var cartSprites = ['img/yellow_cart_2.png'];
 
-// entity vertical levels
-//larger values are higher up
-//var items = [115, 175];
-var items = [115];
-//left to right
-var rightYChoices = [300, 340, 380, 400, 420];
-//right to left
-var leftYChoices = [280, 320, 360, 340, 420];
 
 // Keeping score
 var scoreTracker = {};
@@ -242,7 +251,8 @@ function cartY(heights) {
 function checkPlayerBounds() {
     // Check bounds
     if (player.pos[0] < 0) {
-        player.pos[0] = 0;
+        //player.pos[0] = 0;
+          player.pos = [canvas.width / 2, canvas.height - 45];
     } else if (player.pos[0] > canvas.width - player.sprite.size[0]) {
         player.pos[0] = canvas.width - player.sprite.size[0];
     }
@@ -350,6 +360,35 @@ function checkCarts(dt){
     }
 }
 
+function detectZone(player) {
+    var pos = player.pos;
+    var zone = "";
+    if (pos[1] > (canvas.height - 60)) {
+        //console.log('home zone' + pos[1]);
+        zone = "home";
+        return zone;
+    }
+    // ctx.fillRect(0, (canvas.height / 2) - 20, canvas.width, 40);
+     if (pos[1] > ((canvas.height / 2) - 20) && pos[1] < ((canvas.height / 2) + 20)) {
+        //console.log('midzone' + pos[1]);
+        zone = "midzone";
+        return zone;
+    }
+
+    return zone;
+}
+  var timer = 0;
+    function endAndStartTimer() {
+      
+        timer++;
+       
+        if (timer % 30 === 0) {
+             player.pos = [canvas.width / 2, canvas.height - 45];
+        }
+        
+        //timer = 0;
+      
+}
 function checkCollisions(dt) {
     var i,
         pos,
@@ -358,10 +397,19 @@ function checkCollisions(dt) {
         keyIsPressed = false,
         isOnFloor = true;
     checkPlayerBounds();
+    
+    var zone = detectZone(player);
+  
  
-    if (anyPress(player) === false && player.onCart === false) {
-        player.pos = [canvas.width / 2, canvas.height - 45];
+    if (anyPress(player) === false && player.onCart === false && zone !== "home" && zone !== "midzone") {
+       player.pos = [canvas.width / 2, canvas.height - 45];
     }
+    else if (anyPress(player) === true && player.onCart === false && zone !== "home" && zone !== "midzone") {
+      endAndStartTimer(0);
+     
+    }
+    
+    //detectZone(player);
    
     // Collision for slots
     for (i = 0; i < slots.length; i += 1) {
@@ -423,10 +471,10 @@ function checkCollisions(dt) {
         }
     }
 }
-
+var old = 0;
 function update(dt) {
     gameTime += dt;
-
+    var start = new Date().getTime();
     handleInput(dt);
     updateEntities(dt);
 
@@ -436,13 +484,34 @@ function update(dt) {
         cSprite,
         lSprite,
         rSprite;
-
+   var cartOffset = 0;
+   var skipCart = false;
     if (rand < addRate) {
+        if (old === 0) {
+            old = new Date().getTime();
+        } else {
+            var end = new Date().getTime();
+          // console.log(end - old);
+         
+           if ((end - old) < (cartSpeed * 7.9) ) {
+               skipCart = true;
+              // cartOffset = (cartSpeed * 10)- (end - old);
+               //console.log(end - old);
+               //console.log(cartSpeed * 10);
+              // console.log(cartOffset);
+               
+           }
+             old = end;
+            
+        }
+       
         cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
+        if (skipCart === false) {
         carts.push({
-            pos: [canvas.width, canvas.height - cartY(items)],
+            pos: [canvas.width + cartOffset, canvas.height - cartY(items)],
             sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
         });
+        }
 
         lSprite = leftSprites[Math.floor(Math.random() * leftSprites.length)];
         students.push({
@@ -513,15 +582,18 @@ function render() {
 
     // Draw the scene
     ctx.fillStyle = "gold";
+    
     ctx.fillRect(0, (canvas.height / 2) - 20, canvas.width, 40);
     ctx.fillStyle = "LightGoldenRodYellow";
     ctx.fillRect(0, 0, canvas.width, slotHeight);
+   
+    
     ctx.fillStyle = "DarkGoldenRod";
-    ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+    ctx.fillRect(0, canvas.height - (homeHeight - (homeBorder * 2)), canvas.width, homeBorder);
     ctx.fillStyle = "black";
-    ctx.fillRect(0, canvas.height - 50, canvas.width, 40);
+    ctx.fillRect(0, canvas.height - (homeHeight - (homeBorder * 3)), canvas.width, homeHeight - (homeBorder * 3));
     ctx.fillStyle = "DarkGoldenRod";
-    ctx.fillRect(0, canvas.height - 60, canvas.width, 10);
+    ctx.fillRect(0, canvas.height - homeBorder, canvas.width, homeBorder);
     renderEntities(carts);
     renderEntities(students);
     renderEntities(right_students);
