@@ -25,9 +25,8 @@ var scoreEl = document.getElementById('score');
 // Height of 'home' slots
 var slotHeight = 40;
 var isGameOver = false;
-
-//console.log(pressedKeys);
-
+var hopLength = 65;
+// Zones. These are just heights
 
 // games
 var games = [
@@ -61,6 +60,7 @@ function startPlayer() {
 
 var startId = startPlayer();
 var player = {
+    onCart: false,
     pos: [0, 0],
     id: startId,
     //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
@@ -99,7 +99,8 @@ var cartSprites = ['img/yellow_cart_2.png'];
 
 // entity vertical levels
 //larger values are higher up
-var items = [115, 175];
+//var items = [115, 175];
+var items = [115];
 //left to right
 var rightYChoices = [300, 340, 380, 400, 420];
 //right to left
@@ -124,27 +125,68 @@ function hopper(tracker) {
     return 0;
 }
 
-function handleInput() {
+/*player.upPressed = false;
+player.downPressed = false;
+player.rightPressed = false;
+player.leftPressed = false;
+player.onCart = false;
+*/
+
+// Helper to see if any key was pressed
+function anyPress(player) {
+    if (
+        player.upPressed === true ||
+        player.downPressed === true ||
+        player.rightPressed === true ||
+        player.leftPressed === true 
+    ) {
+        return true;
+    }
+    
+    return false;
+}
+
+function handleInput(dt) {
+  
     if (input.isDown('DOWN') || input.isDown('s')) {
-        //player.pos[1] += playerSpeed * dt;
-        player.pos[1] += hopper(hopTracker);
-        hopTracker += 1;
+        if (player.downPressed === false){
+            player.pos[1] += hopLength;
+            player.downPressed = true;
+            player.onCart = false;
+        }
+        
+    } else {
+        player.downPressed = false;
     }
 
     if (input.isDown('UP') || input.isDown('w')) {
-        player.pos[1] -= hopper(hopTracker);
-      
-              hopTracker += 1;
+        if (player.upPressed === false) {
+            player.pos[1] -= hopLength;
+            player.upPressed = true;
+            player.onCart = false;
+        }
+    } else {
+         player.upPressed = false;
     }
 
     if (input.isDown('LEFT') || input.isDown('a')) {
-        player.pos[0] -= hopper(hopTracker);
-        hopTracker += 1;
+        if (player.leftPressed === false) {
+            player.pos[0] -= hopLength;
+            player.leftPressed = true;
+            player.onCart = false;
+        }
+    } else {
+        player.leftPressed = false;
     }
 
     if (input.isDown('RIGHT') || input.isDown('d')) {
-        player.pos[0] += hopper(hopTracker);
-        hopTracker += 1;
+        if (player.rightPressed === false) {
+            player.pos[0] += hopLength;
+            player.rightPressed = true;
+            player.onCart = false;
+        }
+    } else {
+        player.rightPressed = false;
     }
 }
 
@@ -191,7 +233,7 @@ function updateEntities(dt) {
 }
 
 // Update game object
-// Puts carts on diffferent levels
+// Puts carts on different levels
 function cartY(heights) {
     var item = heights[Math.floor(Math.random() * heights.length)];
     return item;
@@ -224,6 +266,19 @@ function slotCollides(pos, size, pos2, size2) {
     ) {
         return true;
     }
+}
+
+function cartCollides(pos, size, pos2, size2) {
+    if (
+        (pos2[0] >= pos[0]  && // player left edge to the right of left cart edge
+        pos2[0] + size2[0] <= pos[0] + size[0] && // player right edge to the left of right cart edge
+        pos2[1] >= pos[1]  && // player top edge below cart top edge
+       pos2[1] + size2[1] <= pos[1] + size[1] // //player bottom edge above cart bottom edge
+            )
+    ) {
+        return true;
+    }
+    
 }
 
 function currentScore(scoreTracker) {
@@ -283,6 +338,18 @@ function boxCollides(pos, size, pos2, size2) {
         pos2[0] + size2[0], pos2[1] + size2[1]);
 }
 
+function checkCarts(dt){
+    for (var i = 0; i < carts.length; i += 1) {
+        var pos = carts[i].pos;
+        var size = carts[i].sprite.size;
+     
+        if (cartCollides(pos, size, player.pos, player.sprite.size)) {
+            player.pos[0] -= cartSpeed * dt;
+            player.onCart = true;
+        } 
+    }
+}
+
 function checkCollisions(dt) {
     var i,
         pos,
@@ -291,7 +358,11 @@ function checkCollisions(dt) {
         keyIsPressed = false,
         isOnFloor = true;
     checkPlayerBounds();
-
+ 
+    if (anyPress(player) === false && player.onCart === false) {
+        player.pos = [canvas.width / 2, canvas.height - 45];
+    }
+   
     // Collision for slots
     for (i = 0; i < slots.length; i += 1) {
         pos = slots[i].pos;
@@ -312,42 +383,9 @@ function checkCollisions(dt) {
         }
     }
 
-    // Only hitch a ride when landing on a cart
-       // because the key press has ended
-    if (
-        input.isDown('DOWN') || input.isDown('s') ||
-            input.isDown('UP') || input.isDown('w') ||
-            input.isDown('LEFT') || input.isDown('a') ||
-            input.isDown('RIGHT') || input.isDown('d')
-    ) {
-        keyIsPressed = true;
-    } else {
-        keyIsPressed = false;
-    }
-
-    // Run collision detection for all carts
-    for (i = 0; i < carts.length; i += 1) {
-        pos = carts[i].pos;
-        size = carts[i].sprite.size;
-
-        //  player.pos = [canvas.width / 2, canvas.height - 10];
-        // Hitch a ride on a cart by moving player at same speed
-       // Re-using slot collides here. May be a better way
-        //if (keyIsPressed === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
-        if (keyIsPressed === false && slotCollides(pos, size, player.pos, player.sprite.size)) {
-            player.pos[0] -= cartSpeed * dt;
-            isOnFloor = false;
-            keyIsPressed = true;
-            hopTracker = 0;
-        }
-
-        if (keyIsPressed === false && !slotCollides(pos, size, player.pos, player.sprite.size)) {
-            player.pos = [canvas.width / 2, canvas.height - 45];
-            hopTracker = 0;
-            keyIsPressed = true;
-        }
-    }
-
+    // hitch a ride when landing on a cart
+    checkCarts(dt);
+    
     // Collision with students
     for (i = 0; i < students.length; i += 1) {
         pos = students[i].pos;
@@ -384,11 +422,6 @@ function checkCollisions(dt) {
             gameOver();
         }
     }
-
-    if (keyIsPressed === false && isOnFloor === true) {
-        player.pos = [canvas.width / 2, canvas.height - 45];
-        isOnFloor = false;
-    }
 }
 
 function update(dt) {
@@ -423,7 +456,7 @@ function update(dt) {
             sprite: new Sprite(rSprite, [0, 0], [20, 20], 6, [0, 1])
         });
     }
-    checkCollisions(dt);
+   checkCollisions(dt);
 }
 
 function renderEntity(entity) {
