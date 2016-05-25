@@ -26,6 +26,9 @@ var scoreEl = document.getElementById('score');
 var slotHeight = 40;
 var isGameOver = false;
 
+//console.log(pressedKeys);
+
+
 // games
 var games = [
     ["author", "year", "title", "place", "publisher"]
@@ -110,17 +113,18 @@ var lastTime;
 
 function hopper(tracker) {
     if (tracker  === 0) {
+        hopTracker = 65;
         return 65;
+        
     }
-    if (tracker === 20) {
-        hopTracker = 0;
+    if (tracker === 65) {
+        //hopTracker = 0;
         return 65;
     }
     return 0;
 }
 
 function handleInput() {
-
     if (input.isDown('DOWN') || input.isDown('s')) {
         //player.pos[1] += playerSpeed * dt;
         player.pos[1] += hopper(hopTracker);
@@ -129,7 +133,8 @@ function handleInput() {
 
     if (input.isDown('UP') || input.isDown('w')) {
         player.pos[1] -= hopper(hopTracker);
-        hopTracker += 1;
+      
+              hopTracker += 1;
     }
 
     if (input.isDown('LEFT') || input.isDown('a')) {
@@ -333,10 +338,12 @@ function checkCollisions(dt) {
             player.pos[0] -= cartSpeed * dt;
             isOnFloor = false;
             keyIsPressed = true;
+            hopTracker = 0;
         }
 
         if (keyIsPressed === false && !slotCollides(pos, size, player.pos, player.sprite.size)) {
             player.pos = [canvas.width / 2, canvas.height - 45];
+            hopTracker = 0;
             keyIsPressed = true;
         }
     }
