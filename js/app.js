@@ -23,6 +23,7 @@ var smileys = [];
 var gameTime = 0;
 var terrainPattern;
 var score = 0;
+var totalScore = 0;
 var scoreEl = document.getElementById('score');
 // Height of 'home' slots
 var slotHeight = 60;
@@ -52,12 +53,33 @@ var games = [
     ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."]
 ];
 
-var gameObjs = {
+var gameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
     "Journal Article":
     ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."]
 };
+
+function shallowCopy( original )  
+{
+    // First create an empty object with
+    // same prototype of our original source
+    var clone = Object.create( Object.getPrototypeOf( original ) ) ;
+
+    var i , keys = Object.getOwnPropertyNames( original ) ;
+
+    for ( i = 0 ; i < keys.length ; i ++ )
+    {
+        // copy each property into the clone
+        Object.defineProperty( clone , keys[ i ] ,
+            Object.getOwnPropertyDescriptor( original , keys[ i ] )
+        ) ;
+    }
+
+    return clone ;
+}
+
+var gameObjs = shallowCopy(gameOrg);
 // get a random game
 //var currentGame = games[Math.floor(Math.random() * games.length)];
 //var dgame = pickRandomProperty(gameObjs);
@@ -83,6 +105,7 @@ function makePlayPieces () {
 
 // Game over
 function gameOver() {
+    gameObjs = shallowCopy(gameOrg);
     document.getElementById('game-over').style.display = 'block';
     document.getElementById('game-over-overlay').style.display = 'block';
     isGameOver = true;
@@ -154,7 +177,7 @@ var ctx = canvas.getContext("2d");
 
 canvas.width = canvasWidth;
 canvas.height = canvasHeight;
-document.body.appendChild(canvas);
+document.getElementById("game-div").appendChild(canvas);
 
 // Zones. These are just heights
 var homeZone = canvasHeight - homeHeight;
@@ -201,6 +224,10 @@ function anyPress(player) {
     
     return false;
 }
+var sideHopLength = 0;
+function sideHop (){
+    
+}
 
 function handleInput(dt) {
   
@@ -227,7 +254,7 @@ function handleInput(dt) {
 
     if (input.isDown('LEFT') || input.isDown('a')) {
         if (player.leftPressed === false) {
-            player.pos[0] -= hopLength;
+            player.pos[0] -= sideHopLength;
             player.leftPressed = true;
             player.onCart = false;
         }
@@ -237,7 +264,7 @@ function handleInput(dt) {
 
     if (input.isDown('RIGHT') || input.isDown('d')) {
         if (player.rightPressed === false) {
-            player.pos[0] += hopLength;
+            player.pos[0] += sideHopLength;
             player.rightPressed = true;
             player.onCart = false;
         }
@@ -359,15 +386,18 @@ function updateScore(score, id) {
         sprite,
         pos;
     scoreTracker[id] = score;
+    var total = 0;
 
     for (i = 0; i < slots.length; i += 1) {
         if (scoreTracker[slots[i].slotId] !== undefined) {
             if (scoreTracker[slots[i].slotId] === 1) {
                 sprite = new Sprite('img/smiley.png', [0, 0], [20, 20], 1, [0], null, true);
+                total += 1;
             }
 
             if (scoreTracker[slots[i].slotId] === 0) {
                 sprite = new Sprite('img/frowny.png', [0, 0], [20, 20], 1, [0], null, true);
+                total -= 1;
             }
 
             x = (slots[i].pos[0] + (slots[i].size[0] / 2)) - (sprite.size[0] / 2);
@@ -380,6 +410,8 @@ function updateScore(score, id) {
             });
         }
     }
+    totalScore += total;
+    scoreEl.innerHTML = totalScore;
 }
 
 // Collisions
@@ -474,6 +506,7 @@ function checkCollisions(dt) {
             if (startId !== null) {
                  scoreTracker[slots[i].slotId] = score;
                    updateScore(score, slots[i].slotId);
+                   //scoreEl.innerHTML = score;
                 
             } else if (startId === null && Object.keys(gameObjs).length > 0) {
                 //console.log('no start id');
@@ -483,7 +516,7 @@ function checkCollisions(dt) {
                 gameOver();
             }
            
-           // scoreEl.innerHTML = currentScore(scoreTracker);
+           //scoreEl.innerHTML = score;
          
            // player.id = startPlayer();
             //renderSlots();
@@ -749,8 +782,9 @@ function Sound(src) {
 function reset() {
     if(Object.keys(gameObjs).length === 0) {
         gameOver();
+        
     }
-    Object.keys(gameObjs).length
+  
     console.log('reset ran');
     
     document.getElementById('game-over').style.display = 'none';
@@ -764,6 +798,7 @@ function reset() {
    // play a game we havent used
     //console.log(gameName);
     currentGame = gameObjs[gameName];
+    sideHopLength = (canvasWidth / currentGame.length) / 2;
     delete gameObjs[gameName];
     playPieces = {};
     makePlayPieces ();
@@ -784,8 +819,12 @@ function reset() {
     //player.sprite.url = 'img/' + player.id + '.png';
     player.sprite.url = 'img/book_35.png';
     player.pos = [canvas.width / 2, canvas.height - 45];
-    mySound = new Sound("frogger.ogg");
-    mySound.play();
+    if (mySound === undefined) {
+         mySound = new Sound("frogger.ogg");
+        mySound.play();
+        
+    }
+   
 }
 
 function init() {

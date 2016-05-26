@@ -8,13 +8,16 @@ html, body {
     padding: 0;
     background-color: #151515;
 }
-
+#game-div {
+    position:absolute;
+    top:150px;
+}
 canvas {
     display: block;
     margin: auto;
 
     position: absolute;
-    top: 0;
+    top: 450px;
     bottom: 0;
     left: 0;
     right: 0;
@@ -33,9 +36,11 @@ canvas {
 }
 
 #score {
+    font-family: DPComic;
+    
     float: right;
     color: white;
-    font-size: 2em;
+    font-size: 36px;;
 }
 
 .key {
