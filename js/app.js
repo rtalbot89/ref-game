@@ -39,28 +39,47 @@ var rightYChoices = [290,355, 390];
 //var leftYChoices = [290, 323, 353, 390];
 var leftYChoices = [290, 355, 390];
 
-var canvasWidth = 512;
+var canvasWidth = 680;
 var canvasHeight = 480;
 var homeHeight = 80;
 var homeBorder = 10;
 
 
-
+var gameName;
 // games
 var games = [
-    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."]
+    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
+    ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."]
 ];
+
+var gameObjs = {
+    "Book":
+    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
+    "Journal Article":
+    ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."]
+};
 // get a random game
-var currentGame = games[Math.floor(Math.random() * games.length)];
+//var currentGame = games[Math.floor(Math.random() * games.length)];
+//var dgame = pickRandomProperty(gameObjs);
+//console.log(dgame);
+//console.log(gameObjs[dgame]);
+//delete gameObjs[dgame];
+//console.log(gameObjs);
+var currentGame;
+var playedGames = [];
 
 // Game state
-
 // Track used up players
-var playerTracker = currentGame.slice(0);
+//var playerTracker = currentGame.slice(0);
 var playPieces = {};
-for (var i = 0; i < currentGame.length; i++){
-    playPieces[currentGame[i]] = i;
+
+function makePlayPieces () {
+    for (var i = 0; i < currentGame.length; i++){
+        playPieces[currentGame[i]] = i;
+    }
 }
+
+//makePlayPieces();
 
 // Game over
 function gameOver() {
@@ -69,23 +88,43 @@ function gameOver() {
     isGameOver = true;
     mySound.stop();
 }
-function startPlayer() {
-    console.log(playerTracker);
-    if (playerTracker.length === 0) {
-        
-       // gameOver();
-       reset();
+
+function pickRandomProperty(obj) {
+    var result;
+    var count = 0;
+    for (var prop in obj)
+        if (Math.random() < 1/++count)
+           result = prop;
+    return result;
+}
+
+function pickGame() {
+    //console.log('pick game');
+    var game;
+    if (Object.keys(gameObjs).length > 0) {
+        game = pickRandomProperty(gameObjs);
+        //delete gameObjs[game];
+        return game;
     } else {
-        var slotName = playerTracker[Math.floor(Math.random() * playerTracker.length)];
-        playerTracker.splice(playerTracker.indexOf(slotName), 1);
-        console.log(slotName);
-        console.log(playerTracker);
-        return slotName;
+        gameOver();
+    }
+}
+function startPlayer() {
+    //console.log(playPieces);
+    if (Object.keys(playPieces).length === 0) {
+        //console.log('no more pieces');
+        return null;
+        // gameOver();
+      // reset();
+    } else {
+        var randomPiece = pickRandomProperty(playPieces);
+        delete playPieces[randomPiece];
+        //console.log('random piece: ' + randomPiece);
+        return randomPiece;
     }
 }
 
-var startId = startPlayer();
-//console.log(startId);
+var startId;
 var player = {
     onCart: false,
     pos: [0, 0],
@@ -428,18 +467,29 @@ function checkCollisions(dt) {
                 score += 1;
                 //playerTracker.splice(playerTracker.indexOf(startId), 1);
                 startId = startPlayer();
+                player.sprite.url = 'img/book_35.png';
+                player.pos = [canvas.width / 2, canvas.height - 45];
                 
             }
-            
-            scoreTracker[slots[i].slotId] = score;
-            scoreEl.innerHTML = currentScore(scoreTracker);
-            updateScore(score, slots[i].slotId);
+            if (startId !== null) {
+                 scoreTracker[slots[i].slotId] = score;
+                   updateScore(score, slots[i].slotId);
+                
+            } else if (startId === null && Object.keys(gameObjs).length > 0) {
+                //console.log('no start id');
+                reset();
+               // gameOver();
+            } else {
+                gameOver();
+            }
+           
+           // scoreEl.innerHTML = currentScore(scoreTracker);
+         
            // player.id = startPlayer();
             //renderSlots();
             //console.log(player.id);
             //player.sprite.url = 'img/' + player.id + '.png';
-            player.sprite.url = 'img/book_35.png';
-            player.pos = [canvas.width / 2, canvas.height - 45];
+            
         }
     }
 
@@ -574,7 +624,27 @@ function renderEntities(list) {
         renderEntity(list[i]);
     }
 }
-
+ 
+function wrapText(context, text, x, y, maxWidth, lineHeight) {
+    var words = text.split(' ');
+    var line = '';
+    
+    for(var n = 0; n < words.length; n++) {
+        var testLine = line + words[n] + ' ';
+        var metrics = context.measureText(testLine);
+        var testWidth = metrics.width;
+        if (testWidth > maxWidth && n > 0) {
+            context.fillText(line, x, y);
+            line = words[n] + ' ';
+            y += lineHeight;
+        }
+        else {
+            line = testLine;
+        }
+    }
+    context.fillText(line, x, y);
+}
+      
 function Component(conf) {
     this.pos = conf.pos;
     this.size = conf.size;
@@ -608,7 +678,8 @@ function renderSlots() {
         }
        
         ctx.font = "20px DPComic";
-        ctx.fillText(currentGame[i],x + 10,20);
+        //ctx.fillText(currentGame[i],x + 10,20);
+        wrapText(ctx, currentGame[i], x + 5, y + 20, width - 5, 20);
         slot = new Component({ pos: [x, y], size: [width, height], slotId: currentGame[i] });
         slots.push(slot);
     }
@@ -676,10 +747,27 @@ function Sound(src) {
 
 // Reset game to original state
 function reset() {
+    if(Object.keys(gameObjs).length === 0) {
+        gameOver();
+    }
+    Object.keys(gameObjs).length
+    console.log('reset ran');
+    
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('game-over-overlay').style.display = 'none';
-    currentGame = games[Math.floor(Math.random() * games.length)];
-    playerTracker = currentGame.slice(0);
+    var gn = Object.keys(gameObjs)[Math.floor(Math.random() * Object.keys(gameObjs).length)];
+    console.log(gn);
+    gameName = pickRandomProperty(gameObjs);
+    playedGames.push(gameName);
+    document.getElementById('game-name').innerHTML =' - ' + gameName;
+   // currentGame = games[Math.floor(Math.random() * games.length)];
+   // play a game we havent used
+    //console.log(gameName);
+    currentGame = gameObjs[gameName];
+    delete gameObjs[gameName];
+    playPieces = {};
+    makePlayPieces ();
+    //playerTracker = currentGame.slice(0);
     scoreTracker = {};
     isGameOver = false;
     gameTime = 0;
@@ -691,6 +779,7 @@ function reset() {
     splats = [];
     slots = [];
     smileys = [];
+    startId = startPlayer();
     //player.id = startPlayer();
     //player.sprite.url = 'img/' + player.id + '.png';
     player.sprite.url = 'img/book_35.png';
