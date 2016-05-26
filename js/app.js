@@ -4,7 +4,9 @@
 // Rate at which entities are added to the game
 // Higher values means more frequent updates
 // 0.03 seems fast 0.005 is slow enough for development
-var addRate = 0.03;
+var addRate = 0.01;
+var cartRateLower = 0.03;
+var cartRateUpper = 0.03;
 // Speed in pixels per second
 var playerSpeed = 500;
 var studentSpeed = 60;
@@ -23,17 +25,19 @@ var terrainPattern;
 var score = 0;
 var scoreEl = document.getElementById('score');
 // Height of 'home' slots
-var slotHeight = 40;
+var slotHeight = 60;
 var isGameOver = false;
 var hopLength = 70;
 // entity vertical levels
 //larger values are higher up
 var items = [120, 190];
+var cartRows = [120, 190];
 //var items = [115];
 //left to right
-var rightYChoices = [300, 340, 380, 400, 420];
+var rightYChoices = [290,355, 390];
 //right to left
-var leftYChoices = [280, 320, 360, 340, 420];
+//var leftYChoices = [290, 323, 353, 390];
+var leftYChoices = [290, 355, 390];
 
 var canvasWidth = 512;
 var canvasHeight = 480;
@@ -44,16 +48,19 @@ var homeBorder = 10;
 
 // games
 var games = [
-    ["author", "year", "title", "place", "publisher"]
+    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."]
 ];
 // get a random game
-var slotIds = games[Math.floor(Math.random() * games.length)];
+var currentGame = games[Math.floor(Math.random() * games.length)];
 
 // Game state
 
-// Get a random sprite to start
 // Track used up players
-var playerTracker = slotIds.slice(0);
+var playerTracker = currentGame.slice(0);
+var playPieces = {};
+for (var i = 0; i < currentGame.length; i++){
+    playPieces[currentGame[i]] = i;
+}
 
 // Game over
 function gameOver() {
@@ -63,16 +70,22 @@ function gameOver() {
     mySound.stop();
 }
 function startPlayer() {
+    console.log(playerTracker);
     if (playerTracker.length === 0) {
-        gameOver();
+        
+       // gameOver();
+       reset();
     } else {
         var slotName = playerTracker[Math.floor(Math.random() * playerTracker.length)];
         playerTracker.splice(playerTracker.indexOf(slotName), 1);
+        console.log(slotName);
+        console.log(playerTracker);
         return slotName;
     }
 }
 
 var startId = startPlayer();
+//console.log(startId);
 var player = {
     onCart: false,
     pos: [0, 0],
@@ -109,8 +122,10 @@ var homeZone = canvasHeight - homeHeight;
 
 
 // Alternative images for randomisation
-var rightSprites = ['img/funky_student_sprite.png', 'img/blonde_student.png'];
-var leftSprites = ['img/music_student_sprite.png', 'img/afro_student.png'];
+//var rightSprites = ['img/funky_student_sprite.png', 'img/blonde_student.png'];
+var rightSprites = ['img/blonde_student@35.png','img/funky_student@30.png'];
+//var leftSprites = ['img/music_student_sprite.png', 'img/afro_student.png'];
+var leftSprites = ['img/music_student@30.png','img/afro_student@30.png'];
 //var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
 var cartSprites = ['img/yellow_cart_2.png'];
 
@@ -133,13 +148,6 @@ function hopper(tracker) {
     }
     return 0;
 }
-
-/*player.upPressed = false;
-player.downPressed = false;
-player.rightPressed = false;
-player.leftPressed = false;
-player.onCart = false;
-*/
 
 // Helper to see if any key was pressed
 function anyPress(player) {
@@ -362,7 +370,11 @@ function checkCarts(dt){
 
 function detectZone(player) {
     var pos = player.pos;
-    var zone = "";
+    var zone = "safe";
+    if (pos[1] < (canvas.height - 60) && pos[1] > ((canvas.height / 2) + 20)) {
+        zone = "carts";
+        return zone;
+    }
     if (pos[1] > (canvas.height - 60)) {
         //console.log('home zone' + pos[1]);
         zone = "home";
@@ -377,18 +389,14 @@ function detectZone(player) {
 
     return zone;
 }
-  var timer = 0;
-    function endAndStartTimer() {
-      
-        timer++;
-       
-        if (timer % 30 === 0) {
-             player.pos = [canvas.width / 2, canvas.height - 45];
-        }
-        
-        //timer = 0;
-      
+var timer = 0;
+function endAndStartTimer() {
+    timer++;
+    if (timer % 30 === 0) {
+        player.pos = [canvas.width / 2, canvas.height - 45];
+    }
 }
+
 function checkCollisions(dt) {
     var i,
         pos,
@@ -399,18 +407,14 @@ function checkCollisions(dt) {
     checkPlayerBounds();
     
     var zone = detectZone(player);
-  
- 
-    if (anyPress(player) === false && player.onCart === false && zone !== "home" && zone !== "midzone") {
-       player.pos = [canvas.width / 2, canvas.height - 45];
+    //console.log(zone);
+    if (anyPress(player) === false && player.onCart === false && zone === "carts") {
+       //player.pos = [canvas.width / 2, canvas.height - 45];
     }
-    else if (anyPress(player) === true && player.onCart === false && zone !== "home" && zone !== "midzone") {
-      endAndStartTimer(0);
-     
+    else if (anyPress(player) === true && player.onCart === false && zone === "carts") {
+      //endAndStartTimer(0);
     }
-    
-    //detectZone(player);
-   
+
     // Collision for slots
     for (i = 0; i < slots.length; i += 1) {
         pos = slots[i].pos;
@@ -418,35 +422,44 @@ function checkCollisions(dt) {
 
         if (slotCollides(pos, size, player.pos, player.sprite.size, slots[i].slotId, player.id)) {
             score = 0;
-            if (slots[i].slotId === player.id) {
-                score = 1;
+            //console.log(slots[i].slotId);
+            //console.log(player.id);
+            if (slots[i].slotId === startId) {
+                score += 1;
+                //playerTracker.splice(playerTracker.indexOf(startId), 1);
+                startId = startPlayer();
+                
             }
+            
             scoreTracker[slots[i].slotId] = score;
             scoreEl.innerHTML = currentScore(scoreTracker);
             updateScore(score, slots[i].slotId);
-            player.id = startPlayer();
+           // player.id = startPlayer();
+            //renderSlots();
+            //console.log(player.id);
             //player.sprite.url = 'img/' + player.id + '.png';
             player.sprite.url = 'img/book_35.png';
             player.pos = [canvas.width / 2, canvas.height - 45];
         }
     }
 
-    // hitch a ride when landing on a cart
     checkCarts(dt);
     
     // Collision with students
     for (i = 0; i < students.length; i += 1) {
         pos = students[i].pos;
         size = students[i].sprite.size;
-
+        
         if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-            splats.push(
+             //player.pos = [canvas.width / 2, canvas.height - 45];
+           /* splats.push(
                 {
                     pos: pos,
                     sprite: new Sprite('img/green_squashed.png', [0, 0], [34, 16], 1, [0], null, true)
                 }
             );
             gameOver();
+            */
         }
     }
 
@@ -455,6 +468,8 @@ function checkCollisions(dt) {
         size = right_students[i].sprite.size;
 
         if (boxCollides(pos, size, player.pos, player.sprite.size)) {
+             player.pos = [canvas.width / 2, canvas.height - 45];
+            /*
             splats.push(
                 {
                     pos: pos,
@@ -468,17 +483,24 @@ function checkCollisions(dt) {
                 }
             );
             gameOver();
+            */
         }
     }
 }
 var old = 0;
+var oldUpper = 0;
+function cartSpace(old, end) {
+    if ((end - old) < (cartSpeed * 7.9)) {
+        return true;
+    }
+    return false;
+}
+
 function update(dt) {
     gameTime += dt;
     var start = new Date().getTime();
     handleInput(dt);
     updateEntities(dt);
-
-   // var calcTime = 1 - Math.pow(.993, gameTime);
     //var calcTime = 1 - Math.pow(0.993, gameTime),
     var rand = Math.random(),
         cSprite,
@@ -486,43 +508,55 @@ function update(dt) {
         rSprite;
    var cartOffset = 0;
    var skipCart = false;
-    if (rand < addRate) {
-        if (old === 0) {
-            old = new Date().getTime();
-        } else {
-            var end = new Date().getTime();
-          // console.log(end - old);
-         
-           if ((end - old) < (cartSpeed * 7.9) ) {
-               skipCart = true;
-              // cartOffset = (cartSpeed * 10)- (end - old);
-               //console.log(end - old);
-               //console.log(cartSpeed * 10);
-              // console.log(cartOffset);
-               
-           }
-             old = end;
-            
-        }
-       
-        cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
+   var skipUpperCart = false;
+   
+   if (Math.random() < cartRateLower) {
+       if (old === 0) {
+           old = new Date().getTime();
+       } else {
+           var end = new Date().getTime();
+           skipCart = cartSpace(old, end);
+           old = end;
+       }
+       cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
         if (skipCart === false) {
         carts.push({
-            pos: [canvas.width + cartOffset, canvas.height - cartY(items)],
+            pos: [canvas.width + cartOffset, canvas.height - cartRows[0]],
             sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
         });
         }
-
+   }
+   
+   if (Math.random() < cartRateUpper) {
+       if (oldUpper === 0) {
+           oldUpper = new Date().getTime();
+       } else {
+           var end = new Date().getTime();
+           skipUpperCart = cartSpace(oldUpper, end);
+           oldUpper = end;
+       }
+       cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
+        if (skipUpperCart === false) {
+        carts.push({
+            pos: [canvas.width + cartOffset, canvas.height - cartRows[1]],
+            sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
+        });
+        }
+   }
+   
+    if (rand < addRate) {
         lSprite = leftSprites[Math.floor(Math.random() * leftSprites.length)];
         students.push({
             pos: [canvas.width, canvas.height - cartY(leftYChoices)],
-            sprite: new Sprite(lSprite, [0, 0], [20, 20], 6, [0, 1])
+            //sprite: new Sprite(lSprite, [0, 0], [20, 20], 6, [0, 1])
+              sprite: new Sprite(lSprite, [0, 0], [30, 30], 6, [0, 1])
         });
 
         rSprite = rightSprites[Math.floor(Math.random() * rightSprites.length)];
         right_students.push({
             pos: [0, canvas.height - cartY(rightYChoices)],
-            sprite: new Sprite(rSprite, [0, 0], [20, 20], 6, [0, 1])
+            //sprite: new Sprite(rSprite, [0, 0], [20, 20], 6, [0, 1])
+             sprite: new Sprite(rSprite, [0, 0], [30, 30], 6, [0, 1])
         });
     }
    checkCollisions(dt);
@@ -557,10 +591,10 @@ function renderSlots() {
         y,
         slot;
 
-    for (i = 0; i < slotIds.length; i += 1) {
-        width = canvas.width / slotIds.length;
+    for (i = 0; i < currentGame.length; i += 1) {
+        width = canvas.width / currentGame.length;
         height = slotHeight;
-        x = i === 0 ? 0 : (canvas.width / slotIds.length) * i;
+        x = i === 0 ? 0 : (canvas.width / currentGame.length) * i;
         y = 0;
 
         ctx.beginPath();
@@ -568,7 +602,14 @@ function renderSlots() {
         ctx.strokeStyle = "grey";
         ctx.rect(x, y, width, height);
         ctx.stroke();
-        slot = new Component({ pos: [x, y], size: [width, height], slotId: slotIds[i] });
+        ctx.fillStyle = "black";
+        if (startId === currentGame[i]) {
+            ctx.fillStyle = "red";
+        }
+       
+        ctx.font = "20px DPComic";
+        ctx.fillText(currentGame[i],x + 10,20);
+        slot = new Component({ pos: [x, y], size: [width, height], slotId: currentGame[i] });
         slots.push(slot);
     }
 }
@@ -637,8 +678,8 @@ function Sound(src) {
 function reset() {
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('game-over-overlay').style.display = 'none';
-    slotIds = games[Math.floor(Math.random() * games.length)];
-    playerTracker = slotIds.slice(0);
+    currentGame = games[Math.floor(Math.random() * games.length)];
+    playerTracker = currentGame.slice(0);
     scoreTracker = {};
     isGameOver = false;
     gameTime = 0;
@@ -650,7 +691,7 @@ function reset() {
     splats = [];
     slots = [];
     smileys = [];
-    player.id = startPlayer();
+    //player.id = startPlayer();
     //player.sprite.url = 'img/' + player.id + '.png';
     player.sprite.url = 'img/book_35.png';
     player.pos = [canvas.width / 2, canvas.height - 45];
@@ -690,7 +731,14 @@ resources.load([
     'img/frowny.png',
     'img/yellow_cart_2.png',
     'img/chapter_2.png',
-    'img/book_35.png'
+    'img/book_35.png',
+    'img/blonde_student@2.png',
+    'img/music_student@2.png',
+     'img/blonde_student@35.png',
+     'img/music_student@30.png',
+     'img/afro_student@30.png',
+     'img/funky_student@30.png',
+     
 
 ]);
 resources.onReady(init);

@@ -1,7 +1,12 @@
+@font-face {
+    font-family: DPComic;
+    src: url(dpcomic.ttf);
+}
+
 html, body {
     margin: 0;
     padding: 0;
-    /*background-color: #151515;*/
+    background-color: #151515;
 }
 
 canvas {
