@@ -8,12 +8,10 @@ var addRate = 0.01;
 var cartRateLower = 0.03;
 var cartRateUpper = 0.03;
 // Speed in pixels per second
-var playerSpeed = 500;
+var playerSpeed = 100;
 var studentSpeed = 60;
 var cartSpeed = 120;
 var mySound;
-var gameTime;
-var hopTracker = 0;
 var carts = [];
 var students = [];
 var right_students = [];
@@ -23,7 +21,6 @@ var smileys = [];
 var gameTime = 0;
 var terrainPattern;
 var score = 0;
-var totalScore = 0;
 var scoreEl = document.getElementById('score');
 scoreEl.innerHTML = 0;
 var scoreTracker = {};
@@ -46,7 +43,6 @@ var canvasWidth = 680;
 var canvasHeight = 480;
 var homeHeight = 80;
 var homeBorder = 10;
-
 
 var gameName;
 // games
@@ -83,11 +79,8 @@ function shallowCopy( original )
 
 var gameObjs = shallowCopy(gameOrg);
 var currentGame;
-var playedGames = [];
-
 // Game state
 // Track used up players
-//var playerTracker = currentGame.slice(0);
 var playPieces = {};
 
 function makePlayPieces () {
@@ -99,7 +92,6 @@ function makePlayPieces () {
 // Game over
 function gameOver() {
     gameObjs = shallowCopy(gameOrg);
-  
     document.getElementById('game-over').style.display = 'block';
     document.getElementById('game-over-overlay').style.display = 'block';
     isGameOver = true;
@@ -116,14 +108,13 @@ function pickRandomProperty(obj) {
 }
 
 function pickGame() {
-    var game;
     if (Object.keys(gameObjs).length > 0) {
-        game = pickRandomProperty(gameObjs);
-        return game;
+        return pickRandomProperty(gameObjs);
     } else {
         gameOver();
     }
 }
+
 function startPlayer() {
     if (Object.keys(playPieces).length === 0) {
         return null;
@@ -138,7 +129,6 @@ var startId;
 var player = {
     onCart: false,
     pos: [0, 0],
-    id: startId,
     //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
     sprite: new Sprite('img/book_35.png', [0, 0], [30, 30], 3, [0, 1])
 };
@@ -169,7 +159,6 @@ document.getElementById("game-div").appendChild(canvas);
 // Zones. These are just heights
 var homeZone = canvasHeight - homeHeight;
 
-
 // Alternative images for randomisation
 //var rightSprites = ['img/funky_student_sprite.png', 'img/blonde_student.png'];
 var rightSprites = ['img/blonde_student@35.png','img/funky_student@30.png'];
@@ -178,15 +167,11 @@ var leftSprites = ['img/music_student@30.png','img/afro_student@30.png'];
 //var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
 var cartSprites = ['img/yellow_cart_2.png'];
 
-
-
-
 // The main game loop
 var lastTime;
 
 function hopper(tracker) {
     if (tracker  === 0) {
-        hopTracker = 65;
         return 65;
     }
     if (tracker === 65) {
@@ -205,7 +190,6 @@ function anyPress(player) {
     ) {
         return true;
     }
-    
     return false;
 }
 
@@ -368,19 +352,16 @@ function updateScore(score, id) {
         pos;
     var slotName = gameName + id;
     scoreTracker[slotName] = score;
-    var total = 0;
-
+  
     for (i = 0; i < slots.length; i += 1) {
         var thisSlot = gameName + slots[i].slotId;
         if (scoreTracker[thisSlot] !== undefined) {
             if (scoreTracker[thisSlot] === 1) {
                 sprite = new Sprite('img/smiley.png', [0, 0], [20, 20], 1, [0], null, true);
-                total += 1;
             }
 
             if (scoreTracker[thisSlot] === 0) {
                 sprite = new Sprite('img/frowny.png', [0, 0], [20, 20], 1, [0], null, true);
-                total -= 1;
             }
 
             x = (slots[i].pos[0] + (slots[i].size[0] / 2)) - (sprite.size[0] / 2);
@@ -393,7 +374,6 @@ function updateScore(score, id) {
             });
         }
     }
-    totalScore += total;
     scoreEl.innerHTML = currentScore();
 }
 
@@ -430,19 +410,16 @@ function detectZone(player) {
         return zone;
     }
     if (pos[1] > (canvas.height - 60)) {
-        //console.log('home zone' + pos[1]);
         zone = "home";
         return zone;
     }
-    // ctx.fillRect(0, (canvas.height / 2) - 20, canvas.width, 40);
-     if (pos[1] > ((canvas.height / 2) - 20) && pos[1] < ((canvas.height / 2) + 20)) {
-        //console.log('midzone' + pos[1]);
+    if (pos[1] > ((canvas.height / 2) - 20) && pos[1] < ((canvas.height / 2) + 20)) {
         zone = "midzone";
         return zone;
     }
-
     return zone;
 }
+
 var timer = 0;
 function endAndStartTimer() {
     timer++;
@@ -461,7 +438,6 @@ function checkCollisions(dt) {
     checkPlayerBounds();
     
     var zone = detectZone(player);
-    //console.log(zone);
     if (anyPress(player) === false && player.onCart === false && zone === "carts") {
        //player.pos = [canvas.width / 2, canvas.height - 45];
     }
@@ -473,37 +449,22 @@ function checkCollisions(dt) {
     for (i = 0; i < slots.length; i += 1) {
         pos = slots[i].pos;
         size = slots[i].size;
+        score = 0;
 
         if (slotCollides(pos, size, player.pos, player.sprite.size, slots[i].slotId, player.id)) {
-            score = 0;
             if (slots[i].slotId === startId) {
-                score += 1;
-                updateScore(score, slots[i].slotId);
-                startId = startPlayer();
-                player.sprite.url = 'img/book_35.png';
-                player.pos = [canvas.width / 2, canvas.height - 45];
-                
-            }
-            if (startId !== null) {
-                 //scoreTracker[slots[i].slotId] = score;
-                   //updateScore(score, slots[i].slotId);
-                   //scoreEl.innerHTML = score;
-                
-            } else if (startId === null && Object.keys(gameObjs).length > 0) {
-                //console.log('no start id');
+                score = 1;
+            } 
+             updateScore(score, slots[i].slotId);
+             startId = startPlayer();
+             player.sprite.url = 'img/book_35.png';
+             player.pos = [canvas.width / 2, canvas.height - 45];
+           
+            if (startId === null && Object.keys(gameObjs).length > 0) {
                 reset();
-               // gameOver();
-            } else {
+            } else if (startId === null && Object.keys(gameObjs).length === 0) {
                 gameOver();
             }
-           
-           //scoreEl.innerHTML = score;
-         
-           // player.id = startPlayer();
-            //renderSlots();
-            //console.log(player.id);
-            //player.sprite.url = 'img/' + player.id + '.png';
-            
         }
     }
 
@@ -569,10 +530,10 @@ function update(dt) {
     var rand = Math.random(),
         cSprite,
         lSprite,
-        rSprite;
-   var cartOffset = 0;
-   var skipCart = false;
-   var skipUpperCart = false;
+        rSprite,
+        cartOffset = 0,
+        skipCart = false,
+        skipUpperCart = false;
    
    if (Math.random() < cartRateLower) {
        if (old === 0) {
@@ -702,18 +663,13 @@ function renderSlots() {
 // Draw everything
 function render() {
 
-    //ctx.fillStyle = terrainPattern;
     ctx.fillStyle = "green";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     // Draw the scene
     ctx.fillStyle = "gold";
-    
     ctx.fillRect(0, (canvas.height / 2) - 20, canvas.width, 40);
     ctx.fillStyle = "LightGoldenRodYellow";
     ctx.fillRect(0, 0, canvas.width, slotHeight);
-   
-    
     ctx.fillStyle = "DarkGoldenRod";
     ctx.fillRect(0, canvas.height - (homeHeight - (homeBorder * 2)), canvas.width, homeBorder);
     ctx.fillStyle = "black";
@@ -761,34 +717,18 @@ function Sound(src) {
 
 // Reset game to original state
 function reset() {
-    if(Object.keys(gameObjs).length === 0) {
-        gameOver();
-        
-    }
-  
-    console.log('reset ran');
-    
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('game-over-overlay').style.display = 'none';
-    var gn = Object.keys(gameObjs)[Math.floor(Math.random() * Object.keys(gameObjs).length)];
-    console.log(gn);
+    //Pick a randowm game
     gameName = pickRandomProperty(gameObjs);
-    playedGames.push(gameName);
     document.getElementById('game-name').innerHTML =' - ' + gameName;
-   // currentGame = games[Math.floor(Math.random() * games.length)];
-   // play a game we havent used
-    //console.log(gameName);
     currentGame = gameObjs[gameName];
     sideHopLength = (canvasWidth / currentGame.length) / 2;
     delete gameObjs[gameName];
     playPieces = {};
     makePlayPieces ();
-    //playerTracker = currentGame.slice(0);
-   
     isGameOver = false;
     gameTime = 0;
-    //score = 0;
-    //scoreEl.innerHTML = 0;
     carts = [];
     students = [];
     right_students = [];
@@ -803,14 +743,10 @@ function reset() {
     if (mySound === undefined) {
          mySound = new Sound("frogger.ogg");
         mySound.play();
-        
     }
-   
 }
 
 function init() {
-    //terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
-    
     document.getElementById('play-again').addEventListener('click', function () {
         scoreTracker = {};
         scoreEl.innerHTML = 0;
@@ -849,9 +785,6 @@ resources.load([
      'img/blonde_student@35.png',
      'img/music_student@30.png',
      'img/afro_student@30.png',
-     'img/funky_student@30.png',
-     
-
+     'img/funky_student@30.png'
 ]);
 resources.onReady(init);
-var originalPlayerPos = player.pos.slice(0);
