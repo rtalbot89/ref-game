@@ -1,17 +1,20 @@
 /*global window, document, input, Sprite, resources */
 "use strict";
 
+var debugMode = false;
+
 // Rate at which entities are added to the game
 // Higher values means more frequent updates
 // 0.03 seems fast 0.005 is slow enough for development
-var addRate = 0.01;
-var cartRateLower = 0.03;
-var cartRateUpper = 0.03;
-var cartRateHigher = 0.03;
+var addRate = 0.009;
+var cartRateLower = 0.004;
+var cartRateUpper = 0.004;
+var cartRateHigher = 0.004;
 // Speed in pixels per second
 var playerSpeed = 100;
-var studentSpeed = 60;
-var cartSpeed = 120;
+var studentSpeed = 40;
+var cartSpeed = 80;
+var upperSpeed = 80;
 var mySound;
 var carts = [];
 var students = [];
@@ -46,7 +49,7 @@ var cartWidth = 120;
 var cartHeight = 40;
 var studentWidth = 40;
 var studentHeight = 40;
-var canvasWidth = 680;
+var canvasWidth = 760;
 var canvasHeight = 480;
 var homeHeight = 60;
 var homeBorder = 10;
@@ -54,6 +57,7 @@ var slotHeight = 60;
 var centralZone = 40;
 var studentZone = (canvasHeight / 2) - (centralZone / 2);
 var cartZone = canvasHeight - homeHeight;
+var slotFont = "20px DPComic";
 
 var hopLength = (canvasHeight - slotHeight) / 8;
 var gameName;
@@ -67,7 +71,11 @@ var gameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
     "Journal Article":
-    ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."]
+    ["Author/s.", "(Year)", "Article Title.", "Journal Name,", "Volume", "(Issue no.)", "Page nos."],
+    "eBook":
+    ["Author.", "(Year)", "Title.", "[online]", "Place:", "Publisher.", "Available from:", "URL", "(access date)"],
+    "Book chapter":
+    ["Author.", "(Year)", "Chapter.", "In:", "Editor/s.", "eds.", "Book.", "Place.", "Publisher,", "Pages."]
 };
 
 function shallowCopy( original )  
@@ -442,11 +450,11 @@ function checkCollisions(dt) {
     checkPlayerBounds();
     
     var zone = detectZone(player);
-    if (anyPress(player) === false && player.onCart === false && zone === "carts") {
-       //player.pos = [canvas.width / 2, canvas.height - 45];
+    if (debugMode === false && anyPress(player) === false && player.onCart === false && zone === "carts") {
+       player.pos = [canvas.width / 2, canvas.height - 45];
     }
-    else if (anyPress(player) === true && player.onCart === false && zone === "carts") {
-      //endAndStartTimer(0);
+    else if (debugMode === false && anyPress(player) === true && player.onCart === false && zone === "carts") {
+        endAndStartTimer(0);
     }
 
     // Collision for slots
@@ -479,16 +487,8 @@ function checkCollisions(dt) {
         pos = students[i].pos;
         size = students[i].sprite.size;
         
-        if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-             //player.pos = [canvas.width / 2, canvas.height - 45];
-           /* splats.push(
-                {
-                    pos: pos,
-                    sprite: new Sprite('img/green_squashed.png', [0, 0], [34, 16], 1, [0], null, true)
-                }
-            );
-            gameOver();
-            */
+        if (debugMode === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
+             player.pos = [canvas.width / 2, canvas.height - 45];
         }
     }
 
@@ -496,23 +496,8 @@ function checkCollisions(dt) {
         pos = right_students[i].pos;
         size = right_students[i].sprite.size;
 
-        if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-            // player.pos = [canvas.width / 2, canvas.height - 45];
-            /*
-            splats.push(
-                {
-                    pos: pos,
-                    sprite: new Sprite('img/green_squashed.png',
-                        [0, 0],
-                        [34, 16],
-                        1,
-                        [0],
-                        null,
-                        true)
-                }
-            );
-            gameOver();
-            */
+        if (debugMode === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
+            player.pos = [canvas.width / 2, canvas.height - 45];
         }
     }
 }
@@ -525,9 +510,21 @@ function cartSpace(old, end) {
     }
     return false;
 }
+var lastCartPos = 0;
+var oldTime = 0;
+var upperTime = 0;
+var foo = false;
 
+function randomIntFromInterval(min,max)
+{
+    return Math.floor(Math.random()*(max-min+1)+min);
+}
 function update(dt) {
     gameTime += dt;
+    oldTime += dt;
+    upperTime += dt;
+    //console.log(dt);
+   //oldTime = gameTime;
     var start = new Date().getTime();
     handleInput(dt);
     updateEntities(dt);
@@ -540,39 +537,35 @@ function update(dt) {
         skipCart = false,
         skipUpperCart = false,
         skipHigherCart = false;
-   
-   if (Math.random() < cartRateLower) {
-       if (old === 0) {
-           old = new Date().getTime();
-       } else {
-           var end = new Date().getTime();
-           skipCart = cartSpace(old, end);
-           old = end;
-       }
+        
+   if (oldTime > (cartWidth / cartSpeed)) {
+       oldTime = 0;
        cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
-        if (skipCart === false) {
+       cartOffset = randomIntFromInterval(0, cartWidth);
+            if (cartOffset > 0) {
+                  oldTime = 0 - ((cartOffset / cartWidth) * (cartWidth / cartSpeed));
+            }
+          
         carts.push({
             pos: [canvas.width + cartOffset, canvas.height - cartRows[0]],
             sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
         });
-        }
+       
    }
    
-   if (Math.random() < cartRateUpper) {
-       if (oldUpper === 0) {
-           oldUpper = new Date().getTime();
-       } else {
-           var end = new Date().getTime();
-           skipUpperCart = cartSpace(oldUpper, end);
-           oldUpper = end;
-       }
+   if (upperTime > (cartWidth / upperSpeed)) {
+        upperTime = 0;
        cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
-        if (skipUpperCart === false) {
+        cartOffset = randomIntFromInterval(0, cartWidth);
+         if (cartOffset > 0) {
+                 upperTime = 0 - ((cartOffset / cartWidth) * (cartWidth / upperSpeed));
+            }
+      
         carts.push({
             pos: [canvas.width + cartOffset, canvas.height - cartRows[1]],
             sprite: new Sprite(cSprite, [0, 0], [cartWidth, cartHeight], 6, [0, 1])
         });
-        }
+       
    }
    
    if (Math.random() < cartRateHigher) {
@@ -675,7 +668,7 @@ function renderSlots() {
             ctx.fillStyle = "red";
         }
        
-        ctx.font = "20px DPComic";
+        ctx.font = slotFont;
         //ctx.fillText(currentGame[i],x + 10,20);
         wrapText(ctx, currentGame[i], x + 5, y + 20, width - 5, 20);
         slot = new Component({ pos: [x, y], size: [width, height], slotId: currentGame[i] });
