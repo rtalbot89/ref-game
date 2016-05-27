@@ -7,6 +7,7 @@
 var addRate = 0.01;
 var cartRateLower = 0.03;
 var cartRateUpper = 0.03;
+var cartRateHigher = 0.03;
 // Speed in pixels per second
 var playerSpeed = 100;
 var studentSpeed = 60;
@@ -25,25 +26,36 @@ var scoreEl = document.getElementById('score');
 scoreEl.innerHTML = 0;
 var scoreTracker = {};
 // Height of 'home' slots
-var slotHeight = 60;
+
 var isGameOver = false;
-var hopLength = 70;
+
 // entity vertical levels
 //larger values are higher up
-var items = [120, 190];
-var cartRows = [120, 190];
+var cartRows = [102, 154, 206];
 //var items = [115];
 //left to right
-var rightYChoices = [290,355, 390];
+//var rightYChoices = [290,355, 390];
+var rightYChoices = [310,410];
 //right to left
 //var leftYChoices = [290, 323, 353, 390];
-var leftYChoices = [290, 355, 390];
+var leftYChoices = [310,410];
 
+var playerHeight = 30;
+var playerWidth = 42;
+var cartWidth = 120;
+var cartHeight = 40;
+var studentWidth = 40;
+var studentHeight = 40;
 var canvasWidth = 680;
 var canvasHeight = 480;
-var homeHeight = 80;
+var homeHeight = 60;
 var homeBorder = 10;
+var slotHeight = 60;
+var centralZone = 40;
+var studentZone = (canvasHeight / 2) - (centralZone / 2);
+var cartZone = canvasHeight - homeHeight;
 
+var hopLength = (canvasHeight - slotHeight) / 8;
 var gameName;
 // games
 var games = [
@@ -130,7 +142,7 @@ var player = {
     onCart: false,
     pos: [0, 0],
     //sprite: new Sprite('img/' + startId + '.png', [0, 0], [30, 26], 10, [0, 1])
-    sprite: new Sprite('img/book_35.png', [0, 0], [30, 30], 3, [0, 1])
+    sprite: new Sprite('img/book_burgundy.png', [0, 0], [playerWidth, playerHeight], 3, [0, 1])
 };
 
 
@@ -148,7 +160,7 @@ var requestAnimFrame = (function () {
         };
 }());
 
-// Create the canvas
+// Create the canva
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
 
@@ -161,9 +173,9 @@ var homeZone = canvasHeight - homeHeight;
 
 // Alternative images for randomisation
 //var rightSprites = ['img/funky_student_sprite.png', 'img/blonde_student.png'];
-var rightSprites = ['img/blonde_student@35.png','img/funky_student@30.png'];
+var rightSprites = ['img/funky_student@40.png','img/blonde_student@40.png'];
 //var leftSprites = ['img/music_student_sprite.png', 'img/afro_student.png'];
-var leftSprites = ['img/music_student@30.png','img/afro_student@30.png'];
+var leftSprites = ['img/music_student@40.png','img/afro_student@40.png'];
 //var cartSprites = ['img/yellow_cart.png', 'img/red_cart.png', 'img/blue_cart.png',];
 var cartSprites = ['img/yellow_cart_2.png'];
 
@@ -299,7 +311,7 @@ function checkPlayerBounds() {
     if (player.pos[1] < 0) {
         player.pos[1] = 0;
     } else if (player.pos[1] > canvas.height - player.sprite.size[1]) {
-        player.pos[1] = canvas.height - player.sprite.size[1];
+        player.pos[1] = canvas.height - (player.sprite.size[1] + 15);
     }
 }
 
@@ -405,16 +417,8 @@ function checkCarts(dt){
 function detectZone(player) {
     var pos = player.pos;
     var zone = "safe";
-    if (pos[1] < (canvas.height - 60) && pos[1] > ((canvas.height / 2) + 20)) {
+    if (pos[1] < (canvasHeight - homeHeight) && pos[1] > (studentZone + centralZone) ){
         zone = "carts";
-        return zone;
-    }
-    if (pos[1] > (canvas.height - 60)) {
-        zone = "home";
-        return zone;
-    }
-    if (pos[1] > ((canvas.height / 2) - 20) && pos[1] < ((canvas.height / 2) + 20)) {
-        zone = "midzone";
         return zone;
     }
     return zone;
@@ -457,7 +461,7 @@ function checkCollisions(dt) {
             } 
              updateScore(score, slots[i].slotId);
              startId = startPlayer();
-             player.sprite.url = 'img/book_35.png';
+             player.sprite.url = 'img/book_burgundy.png';
              player.pos = [canvas.width / 2, canvas.height - 45];
            
             if (startId === null && Object.keys(gameObjs).length > 0) {
@@ -493,7 +497,7 @@ function checkCollisions(dt) {
         size = right_students[i].sprite.size;
 
         if (boxCollides(pos, size, player.pos, player.sprite.size)) {
-             player.pos = [canvas.width / 2, canvas.height - 45];
+            // player.pos = [canvas.width / 2, canvas.height - 45];
             /*
             splats.push(
                 {
@@ -514,6 +518,7 @@ function checkCollisions(dt) {
 }
 var old = 0;
 var oldUpper = 0;
+var oldHigher = 0;
 function cartSpace(old, end) {
     if ((end - old) < (cartSpeed * 7.9)) {
         return true;
@@ -533,7 +538,8 @@ function update(dt) {
         rSprite,
         cartOffset = 0,
         skipCart = false,
-        skipUpperCart = false;
+        skipUpperCart = false,
+        skipHigherCart = false;
    
    if (Math.random() < cartRateLower) {
        if (old === 0) {
@@ -564,7 +570,24 @@ function update(dt) {
         if (skipUpperCart === false) {
         carts.push({
             pos: [canvas.width + cartOffset, canvas.height - cartRows[1]],
-            sprite: new Sprite(cSprite, [0, 0], [120, 40], 6, [0, 1])
+            sprite: new Sprite(cSprite, [0, 0], [cartWidth, cartHeight], 6, [0, 1])
+        });
+        }
+   }
+   
+   if (Math.random() < cartRateHigher) {
+       if (oldHigher === 0) {
+           oldHigher = new Date().getTime();
+       } else {
+           var end = new Date().getTime();
+           skipHigherCart = cartSpace(oldHigher, end);
+           oldHigher = end;
+       }
+       cSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
+        if (skipHigherCart === false) {
+        carts.push({
+            pos: [canvas.width + cartOffset, canvas.height - cartRows[2]],
+            sprite: new Sprite(cSprite, [0, 0], [cartWidth, cartHeight], 6, [0, 1])
         });
         }
    }
@@ -574,14 +597,14 @@ function update(dt) {
         students.push({
             pos: [canvas.width, canvas.height - cartY(leftYChoices)],
             //sprite: new Sprite(lSprite, [0, 0], [20, 20], 6, [0, 1])
-              sprite: new Sprite(lSprite, [0, 0], [30, 30], 6, [0, 1])
+              sprite: new Sprite(lSprite, [0, 0], [studentWidth, studentHeight], 6, [0, 1])
         });
 
         rSprite = rightSprites[Math.floor(Math.random() * rightSprites.length)];
         right_students.push({
             pos: [0, canvas.height - cartY(rightYChoices)],
             //sprite: new Sprite(rSprite, [0, 0], [20, 20], 6, [0, 1])
-             sprite: new Sprite(rSprite, [0, 0], [30, 30], 6, [0, 1])
+             sprite: new Sprite(rSprite, [0, 0], [studentWidth, studentHeight], 6, [0, 1])
         });
     }
    checkCollisions(dt);
@@ -663,19 +686,29 @@ function renderSlots() {
 // Draw everything
 function render() {
 
+    // The main game area
     ctx.fillStyle = "green";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    // Draw the scene
+    ctx.fillRect(0, 0, canvas.width, canvas.height );
+    
+    // Central zone
     ctx.fillStyle = "gold";
-    ctx.fillRect(0, (canvas.height / 2) - 20, canvas.width, 40);
+    ctx.fillRect(0, studentZone, canvas.width, centralZone);
+    
+    //  slot zone
     ctx.fillStyle = "LightGoldenRodYellow";
     ctx.fillRect(0, 0, canvas.width, slotHeight);
-    ctx.fillStyle = "DarkGoldenRod";
-    ctx.fillRect(0, canvas.height - (homeHeight - (homeBorder * 2)), canvas.width, homeBorder);
+   
+   // Home zone
     ctx.fillStyle = "black";
-    ctx.fillRect(0, canvas.height - (homeHeight - (homeBorder * 3)), canvas.width, homeHeight - (homeBorder * 3));
+    ctx.fillRect(0, cartZone, canvas.width, homeHeight);
+
+    // home top border
     ctx.fillStyle = "DarkGoldenRod";
+    ctx.fillRect(0, cartZone, canvas.width, homeBorder);
+    
+    // home bottom border
     ctx.fillRect(0, canvas.height - homeBorder, canvas.width, homeBorder);
+    
     renderEntities(carts);
     renderEntities(students);
     renderEntities(right_students);
@@ -717,11 +750,12 @@ function Sound(src) {
 
 // Reset game to original state
 function reset() {
+
     document.getElementById('game-over').style.display = 'none';
     document.getElementById('game-over-overlay').style.display = 'none';
     //Pick a randowm game
     gameName = pickRandomProperty(gameObjs);
-    document.getElementById('game-name').innerHTML =' - ' + gameName;
+    document.getElementById('game-name').innerHTML = gameName;
     currentGame = gameObjs[gameName];
     sideHopLength = (canvasWidth / currentGame.length) / 2;
     delete gameObjs[gameName];
@@ -738,7 +772,7 @@ function reset() {
     startId = startPlayer();
     //player.id = startPlayer();
     //player.sprite.url = 'img/' + player.id + '.png';
-    player.sprite.url = 'img/book_35.png';
+    player.sprite.url = 'img/book_burgundy.png';
     player.pos = [canvas.width / 2, canvas.height - 45];
     if (mySound === undefined) {
          mySound = new Sound("frogger.ogg");
@@ -780,11 +814,14 @@ resources.load([
     'img/yellow_cart_2.png',
     'img/chapter_2.png',
     'img/book_35.png',
-    'img/blonde_student@2.png',
+    'img/blonde_student@40.png',
     'img/music_student@2.png',
      'img/blonde_student@35.png',
      'img/music_student@30.png',
-     'img/afro_student@30.png',
-     'img/funky_student@30.png'
+     'img/music_student@40.png',
+     'img/afro_student@40.png',
+     'img/funky_student@30.png',
+     'img/funky_student@40.png',
+     'img/book_burgundy.png'
 ]);
 resources.onReady(init);
