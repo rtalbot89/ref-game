@@ -25,6 +25,8 @@ var terrainPattern;
 var score = 0;
 var totalScore = 0;
 var scoreEl = document.getElementById('score');
+scoreEl.innerHTML = 0;
+var scoreTracker = {};
 // Height of 'home' slots
 var slotHeight = 60;
 var isGameOver = false;
@@ -80,13 +82,6 @@ function shallowCopy( original )
 }
 
 var gameObjs = shallowCopy(gameOrg);
-// get a random game
-//var currentGame = games[Math.floor(Math.random() * games.length)];
-//var dgame = pickRandomProperty(gameObjs);
-//console.log(dgame);
-//console.log(gameObjs[dgame]);
-//delete gameObjs[dgame];
-//console.log(gameObjs);
 var currentGame;
 var playedGames = [];
 
@@ -101,11 +96,10 @@ function makePlayPieces () {
     }
 }
 
-//makePlayPieces();
-
 // Game over
 function gameOver() {
     gameObjs = shallowCopy(gameOrg);
+  
     document.getElementById('game-over').style.display = 'block';
     document.getElementById('game-over-overlay').style.display = 'block';
     isGameOver = true;
@@ -122,27 +116,20 @@ function pickRandomProperty(obj) {
 }
 
 function pickGame() {
-    //console.log('pick game');
     var game;
     if (Object.keys(gameObjs).length > 0) {
         game = pickRandomProperty(gameObjs);
-        //delete gameObjs[game];
         return game;
     } else {
         gameOver();
     }
 }
 function startPlayer() {
-    //console.log(playPieces);
     if (Object.keys(playPieces).length === 0) {
-        //console.log('no more pieces');
         return null;
-        // gameOver();
-      // reset();
     } else {
         var randomPiece = pickRandomProperty(playPieces);
         delete playPieces[randomPiece];
-        //console.log('random piece: ' + randomPiece);
         return randomPiece;
     }
 }
@@ -192,8 +179,7 @@ var leftSprites = ['img/music_student@30.png','img/afro_student@30.png'];
 var cartSprites = ['img/yellow_cart_2.png'];
 
 
-// Keeping score
-var scoreTracker = {};
+
 
 // The main game loop
 var lastTime;
@@ -202,10 +188,8 @@ function hopper(tracker) {
     if (tracker  === 0) {
         hopTracker = 65;
         return 65;
-        
     }
     if (tracker === 65) {
-        //hopTracker = 0;
         return 65;
     }
     return 0;
@@ -224,11 +208,8 @@ function anyPress(player) {
     
     return false;
 }
-var sideHopLength = 0;
-function sideHop (){
-    
-}
 
+var sideHopLength = 0;
 function handleInput(dt) {
   
     if (input.isDown('DOWN') || input.isDown('s')) {
@@ -365,7 +346,7 @@ function cartCollides(pos, size, pos2, size2) {
     
 }
 
-function currentScore(scoreTracker) {
+function currentScore() {
     var total = 0,
         key,
         value;
@@ -385,17 +366,19 @@ function updateScore(score, id) {
         i,
         sprite,
         pos;
-    scoreTracker[id] = score;
+    var slotName = gameName + id;
+    scoreTracker[slotName] = score;
     var total = 0;
 
     for (i = 0; i < slots.length; i += 1) {
-        if (scoreTracker[slots[i].slotId] !== undefined) {
-            if (scoreTracker[slots[i].slotId] === 1) {
+        var thisSlot = gameName + slots[i].slotId;
+        if (scoreTracker[thisSlot] !== undefined) {
+            if (scoreTracker[thisSlot] === 1) {
                 sprite = new Sprite('img/smiley.png', [0, 0], [20, 20], 1, [0], null, true);
                 total += 1;
             }
 
-            if (scoreTracker[slots[i].slotId] === 0) {
+            if (scoreTracker[thisSlot] === 0) {
                 sprite = new Sprite('img/frowny.png', [0, 0], [20, 20], 1, [0], null, true);
                 total -= 1;
             }
@@ -411,7 +394,7 @@ function updateScore(score, id) {
         }
     }
     totalScore += total;
-    scoreEl.innerHTML = totalScore;
+    scoreEl.innerHTML = currentScore();
 }
 
 // Collisions
@@ -493,19 +476,17 @@ function checkCollisions(dt) {
 
         if (slotCollides(pos, size, player.pos, player.sprite.size, slots[i].slotId, player.id)) {
             score = 0;
-            //console.log(slots[i].slotId);
-            //console.log(player.id);
             if (slots[i].slotId === startId) {
                 score += 1;
-                //playerTracker.splice(playerTracker.indexOf(startId), 1);
+                updateScore(score, slots[i].slotId);
                 startId = startPlayer();
                 player.sprite.url = 'img/book_35.png';
                 player.pos = [canvas.width / 2, canvas.height - 45];
                 
             }
             if (startId !== null) {
-                 scoreTracker[slots[i].slotId] = score;
-                   updateScore(score, slots[i].slotId);
+                 //scoreTracker[slots[i].slotId] = score;
+                   //updateScore(score, slots[i].slotId);
                    //scoreEl.innerHTML = score;
                 
             } else if (startId === null && Object.keys(gameObjs).length > 0) {
@@ -803,11 +784,11 @@ function reset() {
     playPieces = {};
     makePlayPieces ();
     //playerTracker = currentGame.slice(0);
-    scoreTracker = {};
+   
     isGameOver = false;
     gameTime = 0;
-    score = 0;
-    scoreEl.innerHTML = 0;
+    //score = 0;
+    //scoreEl.innerHTML = 0;
     carts = [];
     students = [];
     right_students = [];
@@ -829,7 +810,10 @@ function reset() {
 
 function init() {
     //terrainPattern = ctx.createPattern(resources.get('img/terrain.png'), 'repeat');
+    
     document.getElementById('play-again').addEventListener('click', function () {
+        scoreTracker = {};
+        scoreEl.innerHTML = 0;
         reset();
     });
 
