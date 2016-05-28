@@ -9,9 +9,7 @@ html, body {
     background-color: #151515;
 }
 
-.wrapper {
-    
-    width: 760px;
+#wrapper {
     padding:0;
     padding-top:20px;
     margin: 0 auto;
