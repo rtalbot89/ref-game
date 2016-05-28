@@ -35,19 +35,16 @@ var gameTime = 0;
 var scoreEl = document.getElementById("score");
 scoreEl.innerHTML = 0;
 var scoreTracker = {};
-// Height of 'home' slots
-
 var isGameOver = false;
 
 // entity vertical levels
 //larger values are higher up
 var cartRows = [97, 144, 193];
-//var items = [115];
-//left to right
+
+//left to right students
 //var rightYChoices = [290,355, 390];
 var rightYChoices = [290,380];
-//right to left
-//var leftYChoices = [290, 323, 353, 390];
+//right to left students
 var leftYChoices = [290,380];
 
 var playerHeight = 30;
@@ -70,13 +67,11 @@ var rightSprites = ["img/funky_student@40r.png","img/blonde_student@40r.png"];
 var leftSprites = ["img/music_student@40r.png","img/afro_student@40r.png"];
 var cartSprites = ["img/yellow_cart_2.png", "img/red_cart@40.png", "img/blue_cart@40.png", "img/plain_cart@40.png"];
 
-//var hopLength = (canvasHeight - slotHeight) / 8;
-
 var hopLength = ( canvasHeight - ((homeHeight / 2) + (slotHeight / 2)) ) / 8;
 var gameName;
-// games
 
-var ogameOrg = {
+// games
+var gameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
     "Journal Article":
@@ -92,11 +87,12 @@ var ogameOrg = {
     "Webpage":
     ["Author.", "(Year)", "Title.", "[online]", "Available from:", "url", "(access date)."]
 };
-
-var gameOrg = {
+/*
+var testgameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."]
 };
+*/
 
 function returnHome () {
     player.pos = [(canvas.width - playerWidth) / 2 , canvas.height - ( (homeHeight / 2) + (playerHeight / 2) )];
@@ -191,7 +187,6 @@ canvas.height = canvasHeight;
 document.getElementById("wrapper").style.width = canvasWidth + "px";
 document.getElementById("game-div").appendChild(canvas);
 
-// The main game loop
 var lastTime;
 
 // Helper to see if any key was pressed
@@ -439,7 +434,6 @@ var timer = 0;
 function endAndStartTimer() {
     timer++;
     if (timer % 30 === 0) {
-        //player.pos = [canvas.width / 2, canvas.height - 45];
         returnHome();
     }
 }
@@ -453,7 +447,6 @@ function checkCollisions(dt) {
     
     var zone = detectZone(player);
     if (debugMode === false && anyPress(player) === false && player.onCart === false && zone === "carts") {
-        //player.pos = [canvas.width / 2, canvas.height - 45];
         returnHome();
     }
     else if (debugMode === false && anyPress(player) === true && player.onCart === false && zone === "carts") {
@@ -492,7 +485,6 @@ function checkCollisions(dt) {
         size = leftStudents[i].sprite.size;
         
         if (debugMode === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
-            //player.pos = [canvas.width / 2, canvas.height - 45];
             returnHome();
         }
     }
@@ -502,7 +494,6 @@ function checkCollisions(dt) {
         size = rightStudents[i].sprite.size;
 
         if (debugMode === false && boxCollides(pos, size, player.pos, player.sprite.size)) {
-            //player.pos = [canvas.width / 2, canvas.height - 45];
             returnHome();
         }
     }
@@ -641,7 +632,6 @@ function renderSlots() {
         }
        
         ctx.font = slotFont;
-        //ctx.fillText(currentGame[i],x + 10,20);
         wrapText(ctx, currentGame[i], x + 5, y + 20, width - 5, 20);
         slot = new Component({ pos: [x, y], size: [width, height], slotId: currentGame[i] });
         slots.push(slot);
@@ -740,10 +730,7 @@ function reset() {
     slots = [];
     smileys = [];
     startId = startPlayer();
-    //player.id = startPlayer();
-    //player.sprite.url = 'img/' + player.id + '.png';
     player.sprite.url = "img/book_burgundy.png";
-    //player.pos = [canvas.width / 2, canvas.height - 45];
     returnHome();
     if (mySound === undefined) {
         mySound = new Sound("frogger.mp3");
