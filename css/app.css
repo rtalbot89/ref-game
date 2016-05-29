@@ -13,10 +13,21 @@
     font-style: normal;
 
 }
+
+@font-face {
+    font-family: 'minecraftmedium';
+    src: url('minecraft-webfont.woff2') format('woff2'),
+         url('minecraft-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
 html, body {
     margin: 0;
     padding: 0;
     background-color: #151515;
+    /*font-family: vcr_osd_monoregular;*/
+    font-family: minecraftmedium;
 }
 
 #wrapper {
@@ -29,12 +40,12 @@ html, body {
 #instructions {
     float: left;
     /*font-family: sans-serif;*/
-    font-family: vcr_osd_monoregular;
+    /*font-family: minecraftmedium;*/
     color: #757575;
 }
 
 #score {
-    font-family: vcr_osd_monoregular;
+    /*font-family: minecraftmedium;*/
     float: right;
     color: white;
     font-size: 36px;
@@ -74,15 +85,15 @@ html, body {
 
 #game-over h1 {
     font-size: 60px;
-     font-family: DPComic;
+     /*font-family: minecraftmedium;*/
 }
 
 #game-over button {
     font-size: 24px;
-     font-family: vcr_osd_monoregular;
+     /*font-family: minecraftmedium;*/
 }
 #game-name {
-    font-family:vcr_osd_monoregular;
+    /*font-family: minecraftmedium;*/
     color:white;
     font-size:32px;
     float: left;
