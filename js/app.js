@@ -515,7 +515,7 @@ function randomIntFromInterval(min,max)
 
 function callCart(time, width, speed, row, callback){
     if (time > (width / speed)) {
-        time = 0;
+       // time = 0;
         
         var cartSprite = cartSprites[Math.floor(Math.random() * cartSprites.length)];
         var cartOffset = randomIntFromInterval(0, width);
@@ -526,9 +526,9 @@ function callCart(time, width, speed, row, callback){
             sprite: new Sprite(cartSprite, [0, 0], [cartWidth, cartHeight], 6, [0, 1])
         });
         
-        if (cartOffset > 0) {
-            time = 0 - ((cartOffset / width) * (width / speed));
-        }
+        //if (cartOffset > 0) {
+        time = 0 - ((cartOffset / width) * (width / speed));
+        //}
     }
     callback(time);
 }
