@@ -19,6 +19,7 @@ var addStudentRate = 0.006;
 
 // Speeds in pixels per second
 var studentSpeed = 30;
+//80
 var cartLowerSpeed = 80;
 var cartMidSpeed = 100;
 var cartUpperSpeed = 70;
@@ -50,6 +51,7 @@ var leftYChoices = [290,380];
 var playerHeight = 30;
 var playerWidth = 42;
 var cartWidth = 120;
+var cartHeight = 40;
 var studentWidth = 30;
 var studentHeight = 40;
 var canvasWidth = 760;
@@ -516,9 +518,9 @@ function callCart(time, width, speed, row, callback){
         var cartOffset = randomIntFromInterval(0, width);
         
         carts.push({
-            pos: [canvas.width + cartOffset, canvas.height - row],
+            pos: [canvas.width, canvas.height - row],
             velocity: speed,
-            sprite: new Sprite(cartSprite, [0, 0], [120, 40], 6, [0, 1])
+            sprite: new Sprite(cartSprite, [0, 0], [cartWidth, cartHeight], 6, [0, 1])
         });
         
         if (cartOffset > 0) {
