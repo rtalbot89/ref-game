@@ -27,7 +27,7 @@ html, body {
     font-family: DPComic;
     float: right;
     color: white;
-    font-size: 36px;;
+    font-size: 36px;
     
 }
 
@@ -68,7 +68,7 @@ html, body {
 }
 
 #game-over button {
-    font-size: 24px;;
+    font-size: 24px;
      font-family: DPComic;
 }
 #game-name {
