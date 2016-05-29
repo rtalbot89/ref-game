@@ -555,7 +555,9 @@ function update(dt) {
                 leftSprites[Math.floor(Math.random() * leftSprites.length)],
                 [0, 0], [studentWidth, studentHeight], 6, [0, 1])
         });
-
+    }
+    
+    if (Math.random() < addStudentRate) {
         rightStudents.push({
             pos: [0, canvas.height - studentY(rightYChoices)],
             sprite: new Sprite(
