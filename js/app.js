@@ -10,7 +10,7 @@ var debugMode = false;
 // use gameIndex to test one type of game. Put game type in double quotes
 // game types are: "Book", "Journal Article", "Edited Book", "eBook", "Book chapter", "Report", "Webpage""
 // Disable by using null, without quotes.
-var gameIndex = null;
+var gameIndex = "Journal Article";
 
 /* Configure difficulty */
 // Rate at which students are added to the game
@@ -62,7 +62,8 @@ var slotHeight = 50;
 var centralZone = 44;
 var studentZone = (canvasHeight / 2) - (centralZone / 2);
 var cartZone = canvasHeight - homeHeight;
-var slotFont = "20px DPComic";
+
+var slotFont = "20px vcr_osd_monoregular";
 
 // Alternative images for randomisation
 var rightSprites = ["img/funky_student@40r.png","img/blonde_student@40r.png"];

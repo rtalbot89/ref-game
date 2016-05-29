@@ -1,8 +1,18 @@
+/*
 @font-face {
     font-family: DPComic;
-    src: url(dpcomic.ttf);
+    src: url(dpcomic.ttf) format('truetype');
 }
+*/
 
+@font-face {
+    font-family: 'vcr_osd_monoregular';
+    src: url('vcr_osd_mono_1.001-webfont.woff2') format('woff2'),
+         url('vcr_osd_mono_1.001-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+
+}
 html, body {
     margin: 0;
     padding: 0;
@@ -19,12 +29,12 @@ html, body {
 #instructions {
     float: left;
     /*font-family: sans-serif;*/
-    font-family: DPComic;
+    font-family: vcr_osd_monoregular;
     color: #757575;
 }
 
 #score {
-    font-family: DPComic;
+    font-family: vcr_osd_monoregular;
     float: right;
     color: white;
     font-size: 36px;
@@ -69,10 +79,10 @@ html, body {
 
 #game-over button {
     font-size: 24px;
-     font-family: DPComic;
+     font-family: vcr_osd_monoregular;
 }
 #game-name {
-    font-family:DPComic;
+    font-family:vcr_osd_monoregular;
     color:white;
     font-size:32px;
     float: left;
