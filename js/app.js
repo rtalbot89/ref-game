@@ -68,9 +68,9 @@ var slotFont = "14px minecraftmedium";
 //vcr_osd_monoregular
 
 // Alternative images for randomisation
-var rightSprites = ["img/funky_student@40r.png","img/blonde_student@40r.png"];
-var leftSprites = ["img/music_student@40r.png","img/afro_student@40r.png"];
-var cartSprites = ["img/yellow_cart_2.png", "img/red_cart@40.png", "img/blue_cart@40.png", "img/plain_cart@40.png"];
+var rightSprites = ["img/funky_student40r.png","img/blonde_student40r.png"];
+var leftSprites = ["img/music_student40r.png","img/afro_student40r.png"];
+var cartSprites = ["img/yellow_cart_2.png", "img/red_cart40.png", "img/blue_cart40.png", "img/plain_cart40.png"];
 
 var hopLength = ( canvasHeight - ((homeHeight / 2) + (slotHeight / 2)) ) / 8;
 var gameName;
@@ -761,16 +761,16 @@ function init() {
 }
 
 resources.load([
-    "img/red_cart@40.png",
-    "img/blue_cart@40.png",
-    "img/plain_cart@40.png",
+    "img/red_cart40.png",
+    "img/blue_cart40.png",
+    "img/plain_cart40.png",
     "img/smiley.png",
     "img/frowny.png",
     "img/yellow_cart_2.png",
-    "img/blonde_student@40r.png",
-    "img/music_student@40r.png",
-    "img/afro_student@40r.png",
-    "img/funky_student@40r.png",
+    "img/blonde_student40r.png",
+    "img/music_student40r.png",
+    "img/afro_student40r.png",
+    "img/funky_student40r.png",
     "img/book_burgundy.png"
 ]);
 resources.onReady(init);

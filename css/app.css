@@ -22,7 +22,13 @@
     font-style: normal;
 
 }
-html, body {
+.id7-main-content {
+	 background-color: #151515;
+	  font-family: minecraftmedium;
+}
+	
+}
+#wrapper {
     margin: 0;
     padding: 0;
     background-color: #151515;
@@ -85,12 +91,12 @@ html, body {
 
 #game-over h1 {
     font-size: 60px;
-     /*font-family: minecraftmedium;*/
+     font-family: minecraftmedium;
 }
 
 #game-over button {
     font-size: 24px;
-     /*font-family: minecraftmedium;*/
+    font-family: minecraftmedium;
 }
 #game-name {
     /*font-family: minecraftmedium;*/
