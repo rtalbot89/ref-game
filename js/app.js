@@ -668,6 +668,8 @@ function render() {
    // Home zone
     ctx.fillStyle = "black";
     ctx.fillRect(0, cartZone, canvas.width, homeHeight);
+    var img = document.getElementById("shelf");
+    ctx.drawImage(img, 0, cartZone + 10);
 
     // home top border
     ctx.fillStyle = "DarkGoldenRod";
