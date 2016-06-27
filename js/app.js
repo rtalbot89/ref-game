@@ -76,7 +76,7 @@ var hopLength = ( canvasHeight - ((homeHeight / 2) + (slotHeight / 2)) ) / 8;
 var gameName;
 
 // games
-var ogameOrg = {
+var gameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
     "Journal Article":
@@ -93,7 +93,7 @@ var ogameOrg = {
     ["Author.", "(Year)", "Title.", "[online]", "Available from:", "url", "(access date)."]
 };
 
-var gameOrg = {
+var ogameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
      "Edited Book:":
