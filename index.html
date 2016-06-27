@@ -12,13 +12,31 @@
   <body>
    
     <div id="wrapper">
-       <div id="game-over-overlay">
-    </div>
+       <div id="game-over-overlay"></div>
+    <div id="game-start-overlay"></div>
+    <div id="round-next-overlay"></div>
 
     <div id="game-over">
       <h1>GAME OVER</h1>
+      <div id="final-score">Final score</div>
+      <img src="img/fever.gif" width="200" height="200"/>
+      <p>
       <button id="play-again">Play Again</button>
+      </p>
     </div>
+    <div id="game-start">
+      <h1>Harvard referencing game</h1>
+      <p id="num-games">x rounds</p>
+      <p id="first-game">first game</p>
+        <button id="play-start">Start</button>
+      </div>
+      
+      <div id="round-next">
+        <img src="img/dancing_student.gif" width="120" height="120"/>
+      <p id="next-round">next round</p>
+        <button id="play-next">Play</button>
+      </div>
+      
 
       <div id="game-name"></div>
        <div id="score"></div>

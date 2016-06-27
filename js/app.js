@@ -76,7 +76,7 @@ var hopLength = ( canvasHeight - ((homeHeight / 2) + (slotHeight / 2)) ) / 8;
 var gameName;
 
 // games
-var gameOrg = {
+var ogameOrg = {
     "Book":
     ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
     "Journal Article":
@@ -92,12 +92,14 @@ var gameOrg = {
     "Webpage":
     ["Author.", "(Year)", "Title.", "[online]", "Available from:", "url", "(access date)."]
 };
-/*
-var testgameOrg = {
+
+var gameOrg = {
     "Book":
-    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."]
+    ["Author/s.", "(Year)", "Title.", "Place:", "Publisher."],
+     "Edited Book:":
+    ["Editor/s.", "ed.", "(Year)", "Title", "Place.", "Publisher"]
 };
-*/
+
 
 function returnHome () {
     player.pos = [(canvas.width - playerWidth) / 2 , canvas.height - ( (homeHeight / 2) + (playerHeight / 2) )];
@@ -135,11 +137,14 @@ function makePlayPieces () {
 }
 
 // Game over
+var isReplay = false;
 function gameOver() {
     gameObjs = shallowCopy(gameOrg);
     document.getElementById("game-over").style.display = "block";
     document.getElementById("game-over-overlay").style.display = "block";
+    document.getElementById("final-score").innerHTML = "Your score - " + currentScore();
     isGameOver = true;
+    isReplay = true;
     mySound.stop();
 }
 
@@ -710,8 +715,17 @@ function Sound(src) {
     };
 }
 
+// Count scores and rounds
+function gamePlays () {
+    var games = Object.keys(gameObjs).length;
+    return games;
+}
+
 // Reset game to original state
 function reset() {
+     //console.log(gamePlays());
+     document.getElementById("num-games").innerHTML = gamePlays() + " rounds";
+    //console.log(gameObjs);
 
     document.getElementById("game-over").style.display = "none";
     document.getElementById("game-over-overlay").style.display = "none";
@@ -721,9 +735,26 @@ function reset() {
     } else {
         gameName = gameIndex;
     }
-   
+    
+    if (isReplay === true) {
+          document.getElementById("game-start").style.display = "block";
+         document.getElementById("game-start-overlay").style.display = "block";
+    }
+    
     document.getElementById("game-name").innerHTML = gameName;
     currentGame = gameObjs[gameName];
+    
+    document.getElementById("first-game").innerHTML = "First round - "  + gameName + " " + currentGame.length + " points";
+    // count orginal games
+    var startGameCount = Object.keys(gameOrg).length;
+    if (gamePlays() < startGameCount && gamePlays() > 0) {
+        // display the splash screen between games
+         document.getElementById("round-next").style.display = "block";
+         document.getElementById("round-next-overlay").style.display = "block";
+         document.getElementById("next-round").innerHTML = "Next round " + gameName + currentGame.length  + " points";
+         
+    }
+    document.getElementById("next-round").innerHTML = "Score - " + currentScore() + " next - " + gameName + " " + currentGame.length  + " points";
     sideHopLength = (canvasWidth / currentGame.length) / 2;
     delete gameObjs[gameName];
     playPieces = {};
@@ -741,7 +772,7 @@ function reset() {
     returnHome();
     if (mySound === undefined) {
         mySound = new Sound("frogger.mp3");
-        mySound.play();
+        //mySound.play();
     }
 }
 
@@ -750,11 +781,25 @@ function init() {
         scoreTracker = {};
         scoreEl.innerHTML = 0;
         if (mySound !== undefined) {
-            mySound.play();
+            //mySound.play();
         }
         reset();
     });
-
+    
+     document.getElementById("play-start").addEventListener("click", function () {
+         document.getElementById("game-start").style.display = "none";
+         document.getElementById("game-start-overlay").style.display = "none";
+         if (mySound !== undefined) {
+            mySound.play();
+        }
+         
+    });
+    
+    document.getElementById("play-next").addEventListener("click", function () {
+         document.getElementById("round-next").style.display = "none";
+         document.getElementById("round-next-overlay").style.display = "none";
+    });
+    
     reset();
     lastTime = Date.now();
     main();
