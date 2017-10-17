@@ -8,7 +8,7 @@ Download or clone this repository. There are no external dependencies. On the de
 The main source is in 'app.js'. Game configuration settings are near the top. Use these to change the level of difficulty, or the images.
 
 ### Licences ###
-'ref-game' is released under the MIT Licence. Please pay attention to, and honour, the terms of the other licences included.
+'ref-game' is released under the MIT Licence. Also take note of the terms of the other licences included.
 
-* codeman38_licence - The licence for the font
+* codeman38_licence - The licence for one of the fonts
 * canvas-game-bootstrap_licence- The game uses 'canvas-game-bootstrap' as a starting point https://github.com/jlongster/canvas-game-bootstrap. 
