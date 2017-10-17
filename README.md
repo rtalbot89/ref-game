@@ -11,6 +11,7 @@ The main source is in 'app.js'. Game configuration settings are near the top. Us
 'ref-game' is released under the MIT Licence. Please pay attention to the other licences included.
 
 These are:
+
 * codeman38_licence - The licence for the font
 * JamesLong - The game uses James Long's 'canvas-game-bootstrap' as a starting point https://github.com/jlongster/canvas-game-bootstrap. 
 The licence is in 'james_long_licence'
