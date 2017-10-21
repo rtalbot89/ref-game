@@ -1,5 +1,5 @@
 # Ref game #
-A game about referencing sources for students. The game play is inspired by 'Frogger' with a retro arcade game look and feel.
+A game about referencing sources for students. The game play is inspired by 'Frogger' with a retro arcade game look and feel. [View a demo](https://rtalbot89.github.io/ref-game/)
 
 ### How do I get set up? ###
 Download or clone this repository. There are no external dependencies. On the desktop just open 'index.html' to get started. On a server, upload all the files and folders. You can upload
