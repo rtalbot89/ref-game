@@ -1,3 +1,14 @@
+/**
+ * Licence
+ * Copyright University of Warwick 2016
+ *
+ * Use of this source code is governed by an MIT-style licence that can be
+ * found in the MIT-LICENSE file at https://github.com/rtalbot89/ref-game
+ * The source code also depends on two other licences, canvas-game-bootstrap_licence
+ * and codeman38_licence that can be found in the same location
+ * 
+ */
+
 /*global window, document, input, Sprite, resources */
 /*eslint no-console: ["error", { allow: ["warn", "error"] }] */
 
